@@ -39,7 +39,7 @@ export default function VideoResults() {
   ].filter(Boolean).length;
 
   const stitchedReady = !!result.stitched_video_url;
-  const instagramCaption = editedCaption || result.final_caption || result.description || "";
+  const instagramCaption = editedCaption || result.description || result.final_caption || "";
   const charCount = instagramCaption.length;
 
   useEffect(() => {
