@@ -21,7 +21,8 @@
       "mcp__claude_ai_Supabase__get_logs",
       "mcp__claude_ai_Supabase__get_edge_function",
       "mcp__claude_ai_Supabase__deploy_edge_function",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
