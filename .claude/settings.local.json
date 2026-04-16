@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/wuazn/Desktop/Product by Kel/Projects/clipfrom/**)",
+      "Bash(npm -v)",
+      "Bash(aws sts:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const x = require\\('./node_modules/@remotion/lambda/client'\\); console.log\\(Object.keys\\(x\\).filter\\(k => k.includes\\('speculate'\\) || k.includes\\('render'\\) || k.includes\\('progress'\\)\\)\\)\")",
+      "Bash(powershell.exe:*)",
+      "Read(//c/Users/wuazn/Desktop/Product by Kel/Projects/content-clips-local/src/**)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/content-clips-local\" log --oneline -5)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/content-clips-ready\" remote -v)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/clipfrom-remotion\" remote -v)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/clipfrom-remotion\" init)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/clipfrom-remotion\" add -A)",
+      "Bash(git -C \"C:/Users/wuazn/Desktop/Product by Kel/Projects/clipfrom-remotion\" status)",
+      "Bash(git:*)",
+      "Bash(gh repo:*)",
+      "Bash(npm run:*)",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__get_logs",
+      "mcp__claude_ai_Supabase__get_edge_function",
+      "mcp__claude_ai_Supabase__deploy_edge_function",
+      "WebSearch"
+    ]
+  }
+}
