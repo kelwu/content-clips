@@ -86,8 +86,32 @@ export default function VideoResults() {
     : videoUrlsFilled > 0 ? 40 + videoUrlsFilled * 8
     : 20;
 
+  const testMode = import.meta.env.VITE_TEST_MODE === "true";
+
   useEffect(() => {
-    if (!projectId) { navigate("/"); return; }
+    if (!projectId && !testMode) { navigate("/"); return; }
+
+    if (testMode) {
+      setResult({
+        status: "complete",
+        stitched_video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url_1: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url_2: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url_3: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url_4: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        video_url_5: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        caption_options: [
+          "The future of AI is being written right now — and it's moving faster than anyone predicted.",
+          "Three breakthroughs in the last 6 months have quietly changed everything we thought we knew.",
+          "Researchers are stunned. The results speak for themselves.",
+          "This isn't science fiction anymore. This is your morning news.",
+          "The question isn't whether this changes your industry. It's whether you'll be ready.",
+        ],
+        final_caption: "The future of AI is being written right now — and it's moving faster than anyone predicted. Three breakthroughs in the last 6 months have quietly changed everything we thought we knew. #AI #tech #futureofwork",
+        description: "The future of AI is being written right now — and it's moving faster than anyone predicted. Three breakthroughs in the last 6 months have quietly changed everything we thought we knew. #AI #tech #futureofwork",
+      });
+      return;
+    }
 
     const triggerVideoGeneration = async () => {
       if (triggeredRef.current) return;
