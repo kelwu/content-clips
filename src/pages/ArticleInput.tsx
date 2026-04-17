@@ -249,7 +249,13 @@ const ArticleInput = () => {
               <span className="font-bold text-[15px] tracking-tight">ClipFrom</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
-              {["Features", "Pricing", "Showcase"].map((link) => (
+              <button
+                onClick={() => navigate("/features")}
+                className="text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Features
+              </button>
+              {["Showcase", "Pricing"].map((link) => (
                 <button key={link} className="text-sm text-gray-400 hover:text-white transition-colors cursor-not-allowed opacity-50">{link}</button>
               ))}
             </div>
