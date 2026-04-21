@@ -43,6 +43,7 @@ export default function VideoResults() {
   const approvedCaptions: { id: number; text: string }[] = location.state?.captions || [];
   const captionStyle: string = location.state?.captionStyle ?? "pill";
   const transitionStyle: string = location.state?.transitionStyle ?? "cut";
+  const videoSource: string = location.state?.videoSource ?? "ai";
 
   const clips = [result.video_url_1, result.video_url_2, result.video_url_3, result.video_url_4, result.video_url_5];
   const videoUrlsFilled = clips.filter(Boolean).length;
@@ -136,7 +137,7 @@ export default function VideoResults() {
               "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             }),
           },
-          body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle }),
+          body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle, videoSource }),
         });
       } catch (err) { console.warn("Could not trigger video generation:", err); }
     };
@@ -509,6 +510,17 @@ export default function VideoResults() {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-400" />
               <span className="text-sm font-semibold text-white capitalize">{transitionStyle}</span>
+            </div>
+          </div>
+
+          {/* Video source used */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide block mb-2">Video Source</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-sm font-semibold text-white">
+                {videoSource === "ai" ? "AI Generated" : videoSource === "stock" ? "Stock Footage" : "Mix (AI + Stock)"}
+              </span>
             </div>
           </div>
 

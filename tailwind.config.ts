@@ -18,6 +18,19 @@ export default {
     },
     extend: {
       colors: {
+        emerald: {
+          50:  "#FFF5EE",
+          100: "#FEEEE4",
+          200: "#FDD9C0",
+          300: "#FCC09A",
+          400: "#F9A872",
+          500: "#E89054",
+          600: "#B06A3F",
+          700: "#8A4F2D",
+          800: "#6B3A20",
+          900: "#4A2412",
+          950: "#2D1209",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

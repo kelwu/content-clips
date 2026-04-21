@@ -84,6 +84,7 @@ export default function CaptionEditor() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [captionStyle, setCaptionStyle] = useState<"pill" | "bold" | "lower-third" | "none">("pill");
   const [transitionStyle, setTransitionStyle] = useState<"cut" | "fade" | "dissolve" | "wipe">("cut");
+  const [videoSource, setVideoSource] = useState<"ai" | "stock" | "mix">("ai");
 
   const enabledCount = captions.filter((c) => c.enabled).length;
 
@@ -108,7 +109,7 @@ export default function CaptionEditor() {
     setIsGenerating(true);
     toast.success("Generating your videos...");
     navigate(`/results/${projectId}`, {
-      state: { projectId, userEmail, captions: enabledCaptions, captionStyle, transitionStyle },
+      state: { projectId, userEmail, captions: enabledCaptions, captionStyle, transitionStyle, videoSource },
     });
   };
 
@@ -378,6 +379,47 @@ export default function CaptionEditor() {
                 <div className="mt-3 px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-between">
                   <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Active</span>
                   <span className="text-[11px] font-semibold text-emerald-400 capitalize">{transitionStyle}</span>
+                </div>
+              </div>
+
+              {/* Video Source picker */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/>
+                  </svg>
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Video Source</span>
+                </div>
+                <p className="text-[11px] text-gray-600 leading-relaxed mb-3">Choose where clip visuals come from.</p>
+                <div className="flex flex-col gap-2">
+                  {([
+                    { id: "ai", label: "AI Generated", desc: "Kling AI creates cinematic clips from your captions", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> },
+                    { id: "stock", label: "Stock Footage", desc: "Real Pexels clips matched to each caption", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M2 18l6-6 4 4 3-3 5 5"/></svg> },
+                    { id: "mix", label: "Mix", desc: "AI clips 1, 3, 5 · Stock clips 2, 4", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg> },
+                  ] as const).map(({ id, label, desc, icon }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setVideoSource(id)}
+                      className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
+                        videoSource === id
+                          ? "ring-2 ring-emerald-500 border-emerald-500/30 bg-emerald-500/5"
+                          : "border-gray-700 hover:border-gray-500 bg-gray-900"
+                      }`}
+                    >
+                      <div className={`mt-0.5 flex-shrink-0 ${videoSource === id ? "text-emerald-400" : "text-gray-500"}`}>{icon}</div>
+                      <div>
+                        <div className={`text-[11px] font-semibold uppercase tracking-wide ${videoSource === id ? "text-emerald-400" : "text-gray-400"}`}>{label}</div>
+                        <div className="text-[10px] text-gray-600 mt-0.5 leading-relaxed">{desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-between">
+                  <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Active</span>
+                  <span className="text-[11px] font-semibold text-emerald-400">
+                    {videoSource === "ai" ? "AI Generated" : videoSource === "stock" ? "Stock Footage" : "Mix"}
+                  </span>
                 </div>
               </div>
 

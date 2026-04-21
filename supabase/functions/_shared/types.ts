@@ -7,8 +7,12 @@ export interface ContentWebhookPayload {
   user_email: string;
 }
 
+export type VideoSource = "ai" | "stock" | "mix";
+
 export interface VideoWebhookPayload {
   project_id: string;
   user_email: string;
   captionStyle?: CaptionStyle;
+  transitionStyle?: string;
+  videoSource?: VideoSource;
 }

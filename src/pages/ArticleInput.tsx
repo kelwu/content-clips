@@ -67,7 +67,7 @@ const FAQ_ITEMS = [
 
 const C = {
   bg: "oklch(14% 0.015 250)",
-  accent: "oklch(72% 0.17 155)",
+  accent: "#E89054",
   fg: "oklch(96% 0.005 250)",
   fgMuted: "oklch(65% 0.01 250)",
   fgDim: "oklch(45% 0.01 250)",
@@ -209,13 +209,13 @@ const ArticleInput = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-4 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(16,185,129,0.08) 0%, transparent 70%)" }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(232,144,84,0.08) 0%, transparent 70%)" }} />
         <div className="relative z-10 w-full max-w-lg text-center">
           <div className="text-7xl font-bold tabular-nums mb-2">{Math.round(progress)}%</div>
           <p className="text-gray-400 text-sm mb-1 h-5 transition-all">{stages[stage]}</p>
           <p className="text-gray-600 text-xs mb-8">Estimated {formatTime(timeRemaining)} remaining</p>
           <div className="w-full bg-gray-800 rounded-full h-1.5 mb-10 overflow-hidden">
-            <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${progress}%`, boxShadow: "0 0 12px rgba(16,185,129,0.8), 0 0 24px rgba(16,185,129,0.3)" }} />
+            <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${progress}%`, boxShadow: "0 0 12px rgba(232,144,84,0.8), 0 0 24px rgba(232,144,84,0.3)" }} />
           </div>
           <div className="bg-[#0d0d0d] border border-gray-800 rounded-xl overflow-hidden text-left">
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-gray-800 bg-[#111]">
@@ -296,14 +296,14 @@ const ArticleInput = () => {
         {/* ── Hero ── */}
         <section ref={heroRef} style={{ position: "relative", paddingTop: 112, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 500, pointerEvents: "none",
-            background: "radial-gradient(ellipse at top, oklch(72% 0.17 155 / 0.07) 0%, transparent 65%)" }} />
+            background: "radial-gradient(ellipse at top, rgba(232,144,84,0.07) 0%, transparent 65%)" }} />
           <div style={{ maxWidth: 1120, margin: "0 auto", position: "relative", zIndex: 1 }}>
             <div className="cf-hero-grid">
 
               {/* Left */}
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", borderRadius: 999,
-                  border: "1px solid oklch(72% 0.17 155 / 0.3)", background: "oklch(72% 0.17 155 / 0.06)",
+                  border: "1px solid rgba(232,144,84,0.3)", background: "rgba(232,144,84,0.06)",
                   color: C.accent, fontSize: 11, fontFamily: mono, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
                   Article → Reels in minutes
@@ -363,7 +363,7 @@ const ArticleInput = () => {
                     <div style={{ padding: 10 }}>
                       <button type="submit" style={{ width: "100%", padding: "13px 0", background: C.accent, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
                         color: "oklch(14% 0.015 250)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        boxShadow: "0 0 20px oklch(72% 0.17 155 / 0.3)" }}>
+                        boxShadow: "0 0 20px rgba(232,144,84,0.3)" }}>
                         Generate my video
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                       </button>
@@ -387,7 +387,7 @@ const ArticleInput = () => {
                   {/* Back left */}
                   <div style={{ position: "absolute", top: 20, left: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(-7deg)",
                     background: "linear-gradient(160deg, oklch(22% 0.02 200), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 155 / 0.07), transparent 50%)" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(232,144,84,0.07), transparent 50%)" }} />
                     <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
                       <div style={{ background: "oklch(0% 0 0 / 0.5)", borderRadius: 6, padding: "4px 7px" }}>
                         <p style={{ fontSize: 7, color: C.fgMuted, lineHeight: 1.4 }}>The 4-day work week is proving skeptics wrong...</p>
@@ -397,7 +397,7 @@ const ArticleInput = () => {
                   {/* Back right */}
                   <div style={{ position: "absolute", top: 20, right: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(7deg)",
                     background: "linear-gradient(160deg, oklch(20% 0.02 155), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 155 / 0.05), transparent 50%)" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(232,144,84,0.05), transparent 50%)" }} />
                     <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
                       <div style={{ height: 3, background: C.strokeSoft, borderRadius: 999, marginBottom: 5 }} />
                       <div style={{ height: 3, background: "oklch(100% 0 0 / 0.04)", borderRadius: 999, width: "70%" }} />
@@ -406,7 +406,7 @@ const ArticleInput = () => {
                   {/* Front */}
                   <div style={{ position: "absolute", left: 30, right: 30, top: 0, bottom: 40, borderRadius: 18, border: "1px solid oklch(100% 0 0 / 0.12)", overflow: "hidden", zIndex: 10,
                     background: "linear-gradient(160deg, oklch(24% 0.03 155), oklch(18% 0.02 200), oklch(14% 0.015 250))",
-                    boxShadow: "0 0 0 1px oklch(72% 0.17 155 / 0.1), 0 32px 64px oklch(0% 0 0 / 0.6), 0 0 40px oklch(72% 0.17 155 / 0.06)" }}>
+                    boxShadow: "0 0 0 1px rgba(232,144,84,0.1), 0 32px 64px oklch(0% 0 0 / 0.6), 0 0 40px rgba(232,144,84,0.06)" }}>
                     <div style={{ position: "absolute", inset: 0, opacity: 0.04, pointerEvents: "none",
                       backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 4px)" }} />
                     <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 12px 8px" }}>
@@ -432,7 +432,7 @@ const ArticleInput = () => {
                       </div>
                     </div>
                     <div style={{ position: "absolute", top: 36, right: 10 }}>
-                      <div style={{ background: "oklch(72% 0.17 155 / 0.1)", border: "1px solid oklch(72% 0.17 155 / 0.2)", borderRadius: 7, padding: "3px 8px" }}>
+                      <div style={{ background: "rgba(232,144,84,0.1)", border: "1px solid rgba(232,144,84,0.2)", borderRadius: 7, padding: "3px 8px" }}>
                         <span style={{ fontFamily: mono, fontSize: 7, fontWeight: 600, color: C.accent, letterSpacing: "0.1em", textTransform: "uppercase" }}>AI</span>
                       </div>
                     </div>
@@ -504,7 +504,7 @@ const ArticleInput = () => {
                     ].map(({ label, val, done }) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                          background: done ? "oklch(72% 0.17 155 / 0.15)" : "oklch(60% 0.15 80 / 0.15)",
+                          background: done ? "rgba(232,144,84,0.15)" : "oklch(60% 0.15 80 / 0.15)",
                           color: done ? C.accent : "oklch(80% 0.15 80)" }}>
                           {done
                             ? <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6l3 3 5-6"/></svg>
@@ -548,8 +548,8 @@ const ArticleInput = () => {
                       { num: "04", text: "I tracked 200 AI rollouts. Here's what happened.", selected: false },
                     ].map(opt => (
                       <div key={opt.num} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 8,
-                        background: opt.selected ? "oklch(72% 0.17 155 / 0.08)" : C.surfaceRaised,
-                        border: `1px solid ${opt.selected ? "oklch(72% 0.17 155 / 0.25)" : C.strokeSoft}` }}>
+                        background: opt.selected ? "rgba(232,144,84,0.08)" : C.surfaceRaised,
+                        border: `1px solid ${opt.selected ? "rgba(232,144,84,0.25)" : C.strokeSoft}` }}>
                         <span style={{ fontFamily: mono, fontSize: 10, color: opt.selected ? C.accent : C.fgDim, flexShrink: 0, marginTop: 2 }}>{opt.num}</span>
                         <span style={{ fontSize: 12, lineHeight: 1.5, color: opt.selected ? C.fg : C.fgMuted }}>{opt.text}</span>
                       </div>
@@ -620,7 +620,7 @@ const ArticleInput = () => {
             <div className="cf-features-grid">
               {FEATURES.map(f => (
                 <div key={f.title} style={{ background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 14, padding: 24 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "oklch(72% 0.17 155 / 0.08)", border: "1px solid oklch(72% 0.17 155 / 0.15)",
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(232,144,84,0.08)", border: "1px solid rgba(232,144,84,0.15)",
                     display: "flex", alignItems: "center", justifyContent: "center", color: C.accent, marginBottom: 14 }}>
                     {f.icon}
                   </div>
@@ -639,8 +639,8 @@ const ArticleInput = () => {
                 {TRANSITIONS.map((t, i) => (
                   <button key={t.name} onClick={() => setActiveTransition(i)}
                     style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, cursor: "pointer", transition: "all 0.15s",
-                      background: activeTransition === i ? "oklch(72% 0.17 155 / 0.1)" : C.surfaceRaised,
-                      border: `1px solid ${activeTransition === i ? "oklch(72% 0.17 155 / 0.4)" : C.strokeSoft}`,
+                      background: activeTransition === i ? "rgba(232,144,84,0.1)" : C.surfaceRaised,
+                      border: `1px solid ${activeTransition === i ? "rgba(232,144,84,0.4)" : C.strokeSoft}`,
                       color: activeTransition === i ? C.accent : C.fgMuted }}>
                     <div style={{ width: 36, height: 36 }}>{t.icon}</div>
                     <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.06em" }}>{t.name}</span>
@@ -683,15 +683,15 @@ const ArticleInput = () => {
         <section style={{ padding: "80px 24px", borderTop: `1px solid ${C.strokeSoft}` }}>
           <div style={{ maxWidth: 1120, margin: "0 auto" }}>
             <div style={{ background: "linear-gradient(135deg, oklch(18% 0.025 155), oklch(16% 0.015 250))",
-              border: "1px solid oklch(72% 0.17 155 / 0.12)", borderRadius: 24, padding: "64px 48px", textAlign: "center",
-              boxShadow: "0 0 60px oklch(72% 0.17 155 / 0.06)" }}>
+              border: "1px solid rgba(232,144,84,0.12)", borderRadius: 24, padding: "64px 48px", textAlign: "center",
+              boxShadow: "0 0 60px rgba(232,144,84,0.06)" }}>
               <h2 style={{ fontFamily: serif, fontSize: "clamp(2rem, 3vw, 2.8rem)", fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 16px" }}>
                 Your next post is <em>one paste away</em>.
               </h2>
               <p style={{ color: C.fgMuted, fontSize: 16, margin: "0 0 32px" }}>Drop a URL. Walk away. Come back to a Reel you'd be proud to post.</p>
               <button onClick={() => heroRef.current?.scrollIntoView({ behavior: "smooth" })}
                 style={{ padding: "14px 32px", background: C.accent, border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700,
-                  color: "oklch(14% 0.015 250)", cursor: "pointer", boxShadow: "0 0 30px oklch(72% 0.17 155 / 0.3)" }}>
+                  color: "oklch(14% 0.015 250)", cursor: "pointer", boxShadow: "0 0 30px rgba(232,144,84,0.3)" }}>
                 Generate my first video →
               </button>
               <div style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, marginTop: 16 }}>Free to try · No credit card · ~3 min render</div>
