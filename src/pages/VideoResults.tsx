@@ -42,6 +42,7 @@ export default function VideoResults() {
   const content: string = location.state?.content || "";
   const approvedCaptions: { id: number; text: string }[] = location.state?.captions || [];
   const captionStyle: string = location.state?.captionStyle ?? "pill";
+  const transitionStyle: string = location.state?.transitionStyle ?? "cut";
 
   const clips = [result.video_url_1, result.video_url_2, result.video_url_3, result.video_url_4, result.video_url_5];
   const videoUrlsFilled = clips.filter(Boolean).length;
@@ -135,29 +136,36 @@ export default function VideoResults() {
               "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             }),
           },
-          body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle }),
+          body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle }),
         });
       } catch (err) { console.warn("Could not trigger video generation:", err); }
     };
 
-    const poll = async () => {
+    const poll = async (isInitialCheck = false): Promise<boolean> => {
       try {
         const { data } = await supabase
           .from("ai_generations")
           .select("id, stitched_video_url, caption_options, final_caption, description, video_url_1, video_url_2, video_url_3, video_url_4, video_url_5, status")
           .eq("project_id", projectId).maybeSingle();
-        if (!data) return;
+        if (!data) return false;
         setResult(data);
         if (data.stitched_video_url) {
           clearInterval(pollingRef.current!);
-          toast.success("Your video is ready!");
+          if (!isInitialCheck) {
+            toast.success("Your video is ready!");
+          }
+          return true;
         }
-      } catch (err) { console.error("Polling error:", err); }
+        return false;
+      } catch (err) { console.error("Polling error:", err); return false; }
     };
 
     triggerVideoGeneration();
-    poll();
-    pollingRef.current = setInterval(poll, 10000);
+    poll(true).then((alreadyComplete) => {
+      if (!alreadyComplete) {
+        pollingRef.current = setInterval(() => poll(false), 10000);
+      }
+    });
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, [projectId, userEmail, navigate]);
 
@@ -381,8 +389,8 @@ export default function VideoResults() {
           </div>
           <div className="divide-y divide-gray-800/60">
             {displayCaptions.map((text, i) => {
-              const start = `00:0${i * 5}`;
-              const end = `00:0${(i + 1) * 5}`;
+              const start = `00:${String(i * 5).padStart(2, "0")}`;
+              const end = `00:${String((i + 1) * 5).padStart(2, "0")}`;
               return (
                 <div key={i} className="px-4 py-4 hover:bg-gray-900/40 transition-colors cursor-pointer">
                   <div className="flex items-center justify-between mb-1.5">
@@ -492,6 +500,15 @@ export default function VideoResults() {
               <span className="text-sm font-semibold text-white capitalize">
                 {captionStyle === "lower-third" ? "Lower Third" : captionStyle === "none" ? "Off" : captionStyle.charAt(0).toUpperCase() + captionStyle.slice(1)}
               </span>
+            </div>
+          </div>
+
+          {/* Transition style used */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide block mb-2">Transitions</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-sm font-semibold text-white capitalize">{transitionStyle}</span>
             </div>
           </div>
 

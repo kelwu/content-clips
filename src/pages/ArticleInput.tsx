@@ -14,39 +14,77 @@ const LOG_LINES = [
   { text: "⠦ Finalizing your content...", color: "text-gray-400" },
 ];
 
-const HOW_IT_WORKS = [
+const FEATURES = [
   {
-    step: "01",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-      </svg>
-    ),
-    title: "Paste Your Article URL",
-    desc: "Drop any article link — blog post, news story, research paper — and our AI does the rest.",
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 2v3M9 13v3M2 9h3M13 9h3M4 4l2 2M12 12l2 2M4 14l2-2M12 6l2-2"/></svg>,
+    title: "AI caption generation",
+    desc: "Five hook options for every clip, across all five clips — different angles, tones, and energy. Pick the line that sounds like you.",
   },
   {
-    step: "02",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-      </svg>
-    ),
-    title: "AI Produces Your Video",
-    desc: "Our engine writes the script, records the voiceover, sources B-roll, and stitches everything together.",
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="7" y="2" width="4" height="9" rx="2"/><path d="M4 9a5 5 0 0 0 10 0M9 14v2M6 16h6"/></svg>,
+    title: "Natural voiceover",
+    desc: "A human-sounding voice, timed to the beat and synced to the captions. Pick from multiple presets.",
   },
   {
-    step: "03",
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-        <polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-    ),
-    title: "Download & Share",
-    desc: "Get a 9:16 cinematic short ready for Instagram Reels, TikTok, or YouTube Shorts — in minutes.",
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="14" height="10" rx="1.5"/><path d="M2 7h14M6 4v10"/></svg>,
+    title: "Cinematic B-roll",
+    desc: "AI curates and generates visuals that match every caption. No stock library subscription needed.",
   },
+  {
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 6h8l-3-3M15 12H7l3 3"/></svg>,
+    title: "Automatic stitching",
+    desc: "Five clips, transitions, audio, captions — all synced into a single polished cut. No timeline, no keyframes.",
+  },
+  {
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 4h8l-2-2M3 4l2 2M15 14H7l2 2M15 14l-2-2M2 9h14"/></svg>,
+    title: "Inline editing",
+    desc: "Fine-tune any caption, swap a hook, regenerate a clip — before anything hits the render queue.",
+  },
+  {
+    icon: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="14" height="10" rx="1.5"/><path d="M2 6l7 5 7-5"/></svg>,
+    title: "Email delivery",
+    desc: "Drop your URL and walk away. We'll ping you the moment the render lands — usually 3 minutes.",
+  },
+];
+
+const TRANSITIONS = [
+  { name: "Hard cut", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="6" y="10" width="14" height="24" rx="2"/><rect x="24" y="10" width="14" height="24" rx="2" opacity=".4"/></svg> },
+  { name: "Whip pan", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 22h8M30 22h8M18 14l6 8-6 8M26 14l-6 8 6 8"/></svg> },
+  { name: "Zoom", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="22" cy="22" r="6"/><circle cx="22" cy="22" r="12" opacity=".5"/><circle cx="22" cy="22" r="18" opacity=".2"/></svg> },
+  { name: "Smooth", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 22c6-8 12-8 16 0s10 8 16 0"/></svg> },
+  { name: "Glitch", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 22h6M18 16v12M22 22h6M30 16v12"/></svg> },
+  { name: "Blur", icon: <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="22" cy="22" r="14" opacity=".4"/><circle cx="22" cy="22" r="10" opacity=".7"/><circle cx="22" cy="22" r="6"/></svg> },
+];
+
+const FAQ_ITEMS = [
+  { q: "How long does a video take to render?", a: "About three minutes on average. You'll get an email the moment it's ready — no need to keep the tab open." },
+  { q: "What kinds of articles work best?", a: "Anything with a clear narrative — news stories, blog posts, opinion pieces, newsletter editions. We've also had users feed in research paper abstracts with great results." },
+  { q: "Can I edit the video after it's generated?", a: "Yes. You can re-pick a different hook for any clip, swap transition styles, or tweak the final IG caption — all before you download." },
+  { q: "Does ClipFrom post to Instagram for me?", a: "Not yet — we deliver the video file and the caption as a copy-paste block. Direct publishing is on our roadmap." },
+  { q: "What about TikTok and YouTube Shorts?", a: "Same 9:16 output works for all three. Paste, post, done." },
+  { q: "Who owns the generated videos?", a: "You do. Full commercial rights on every plan." },
+];
+
+const C = {
+  bg: "oklch(14% 0.015 250)",
+  accent: "oklch(72% 0.17 155)",
+  fg: "oklch(96% 0.005 250)",
+  fgMuted: "oklch(65% 0.01 250)",
+  fgDim: "oklch(45% 0.01 250)",
+  strokeSoft: "oklch(100% 0 0 / 0.08)",
+  strokeMed: "oklch(100% 0 0 / 0.13)",
+  surface: "oklch(18% 0.015 250)",
+  surfaceRaised: "oklch(21% 0.015 250)",
+} as const;
+
+const serif = '"Instrument Serif", Georgia, serif';
+const mono = '"Geist Mono", monospace';
+
+const TYPING_URLS = [
+  "nytimes.com/ai-is-rewriting-work",
+  "stratechery.com/apple-next-era",
+  "every.to/4-day-week-data",
+  "substack.com/p/great-work-playbook",
 ];
 
 const ArticleInput = () => {
@@ -59,43 +97,53 @@ const ArticleInput = () => {
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(180);
   const [visibleLines, setVisibleLines] = useState(0);
+  const [typedUrl, setTypedUrl] = useState("");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [activeTransition, setActiveTransition] = useState(0);
+
   const navigate = useNavigate();
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const typingStateRef = useRef({ idx: 0, charIdx: 0, typing: true });
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heroRef = useRef<HTMLElement>(null);
 
-  const stages = [
-    "Analyzing your content…",
-    "Extracting key insights…",
-    "Generating captions…",
-    "Polishing results…",
-  ];
+  const stages = ["Analyzing your content…", "Extracting key insights…", "Generating captions…", "Polishing results…"];
 
   useEffect(() => {
     if (!isLoading) return;
-    setProgress(0);
-    setStage(0);
-    setTimeRemaining(180);
-    setVisibleLines(0);
-
-    const progressInterval = setInterval(() => setProgress((p) => Math.min(p + 0.6, 95)), 1000);
-    const stageInterval = setInterval(() => setStage((s) => (s + 1) % stages.length), 20000);
-    const timeInterval = setInterval(() => setTimeRemaining((t) => Math.max(t - 1, 0)), 1000);
-    const logInterval = setInterval(() => setVisibleLines((v) => Math.min(v + 1, LOG_LINES.length)), 3000);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(stageInterval);
-      clearInterval(timeInterval);
-      clearInterval(logInterval);
-    };
+    setProgress(0); setStage(0); setTimeRemaining(180); setVisibleLines(0);
+    const p = setInterval(() => setProgress((v) => Math.min(v + 0.6, 95)), 1000);
+    const s = setInterval(() => setStage((v) => (v + 1) % stages.length), 20000);
+    const t = setInterval(() => setTimeRemaining((v) => Math.max(v - 1, 0)), 1000);
+    const l = setInterval(() => setVisibleLines((v) => Math.min(v + 1, LOG_LINES.length)), 3000);
+    return () => { clearInterval(p); clearInterval(s); clearInterval(t); clearInterval(l); };
   }, [isLoading]);
 
+  useEffect(() => () => { if (pollingRef.current) clearInterval(pollingRef.current); }, []);
+
   useEffect(() => {
-    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
-  }, []);
+    if (isLoading) return;
+    function tick() {
+      const st = typingStateRef.current;
+      const target = TYPING_URLS[st.idx];
+      if (st.typing) {
+        st.charIdx++;
+        setTypedUrl(target.slice(0, st.charIdx));
+        typingTimerRef.current = setTimeout(tick, st.charIdx >= target.length ? 2200 : 40 + Math.random() * 30);
+        if (st.charIdx >= target.length) st.typing = false;
+      } else {
+        st.charIdx--;
+        setTypedUrl(target.slice(0, st.charIdx));
+        if (st.charIdx <= 0) { st.typing = true; st.idx = (st.idx + 1) % TYPING_URLS.length; typingTimerRef.current = setTimeout(tick, 400); }
+        else typingTimerRef.current = setTimeout(tick, 18);
+      }
+    }
+    typingTimerRef.current = setTimeout(tick, 1500);
+    return () => { if (typingTimerRef.current) clearTimeout(typingTimerRef.current); };
+  }, [isLoading]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-
     let content: string;
     if (inputMode === "url") {
       content = articleUrl.trim();
@@ -106,53 +154,35 @@ const ArticleInput = () => {
       if (!content) { toast.error("Please paste some article text"); return; }
       if (content.length < 50) { toast.error("Please paste more text — at least a paragraph"); return; }
     }
-
     if (!userEmail.trim()) { toast.error("Please enter your email address"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { toast.error("Please enter a valid email address"); return; }
 
     setIsLoading(true);
     try {
       const useAgentPipeline = import.meta.env.VITE_USE_AGENT_PIPELINE === "true";
-      const webhookUrl = useAgentPipeline
-        ? import.meta.env.VITE_AGENT_CONTENT_FUNCTION_URL
-        : import.meta.env.VITE_N8N_CONTENT_WEBHOOK;
+      const webhookUrl = useAgentPipeline ? import.meta.env.VITE_AGENT_CONTENT_FUNCTION_URL : import.meta.env.VITE_N8N_CONTENT_WEBHOOK;
       if (!webhookUrl) throw new Error("Webhook URL not configured");
 
       const { data: projectData, error: projectError } = await supabase
-        .from("projects")
-        .insert({ article_url: inputMode === "url" ? content : null, status: "processing" })
-        .select("id")
-        .single();
+        .from("projects").insert({ article_url: inputMode === "url" ? content : null, status: "processing" }).select("id").single();
       if (projectError) throw new Error("Failed to initialize project. Please try again.");
 
       const projectId = projectData.id;
       const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(useAgentPipeline && {
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-          }),
-        },
+        headers: { "Content-Type": "application/json", ...(useAgentPipeline && { "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY }) },
         body: JSON.stringify({ content, type: inputMode, project_id: projectId, user_email: userEmail }),
       });
       if (!response.ok) throw new Error(`Pipeline failed: ${response.statusText}`);
 
       const pollStart = Date.now();
-      const POLL_TIMEOUT_MS = 3 * 60 * 1000;
-
       pollingRef.current = setInterval(async () => {
-        if (Date.now() - pollStart > POLL_TIMEOUT_MS) {
-          clearInterval(pollingRef.current!);
-          setIsLoading(false);
-          toast.error("Caption generation is taking too long. Please try again.");
-          return;
+        if (Date.now() - pollStart > 3 * 60 * 1000) {
+          clearInterval(pollingRef.current!); setIsLoading(false);
+          toast.error("Caption generation is taking too long. Please try again."); return;
         }
         try {
-          const { data: aiData } = await supabase
-            .from("ai_generations").select("caption_options, text_content, status")
-            .eq("project_id", projectId).maybeSingle();
+          const { data: aiData } = await supabase.from("ai_generations").select("caption_options, text_content, status").eq("project_id", projectId).maybeSingle();
           if (!aiData) return;
           const captions = aiData.caption_options || aiData.text_content;
           if (!captions || (Array.isArray(captions) && captions.length === 0)) return;
@@ -179,41 +209,27 @@ const ArticleInput = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-4 relative overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(16,185,129,0.08) 0%, transparent 70%)" }}
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(16,185,129,0.08) 0%, transparent 70%)" }} />
         <div className="relative z-10 w-full max-w-lg text-center">
           <div className="text-7xl font-bold tabular-nums mb-2">{Math.round(progress)}%</div>
           <p className="text-gray-400 text-sm mb-1 h-5 transition-all">{stages[stage]}</p>
           <p className="text-gray-600 text-xs mb-8">Estimated {formatTime(timeRemaining)} remaining</p>
           <div className="w-full bg-gray-800 rounded-full h-1.5 mb-10 overflow-hidden">
-            <div
-              className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000"
-              style={{ width: `${progress}%`, boxShadow: "0 0 12px rgba(16,185,129,0.8), 0 0 24px rgba(16,185,129,0.3)" }}
-            />
+            <div className="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${progress}%`, boxShadow: "0 0 12px rgba(16,185,129,0.8), 0 0 24px rgba(16,185,129,0.3)" }} />
           </div>
           <div className="bg-[#0d0d0d] border border-gray-800 rounded-xl overflow-hidden text-left">
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-gray-800 bg-[#111]">
-              <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-              <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-              <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+              <div className="w-3 h-3 rounded-full bg-[#ff5f57]" /><div className="w-3 h-3 rounded-full bg-[#febc2e]" /><div className="w-3 h-3 rounded-full bg-[#28c840]" />
               <span className="ml-3 text-xs text-gray-500 font-medium select-none">AI Studio — Processing</span>
             </div>
             <div className="p-4 font-mono text-xs space-y-1.5 min-h-[160px]">
               {LOG_LINES.slice(0, visibleLines).map((line, i) => (
                 <div key={i} className={`${line.color} leading-relaxed`}>
                   {line.text}
-                  {i === visibleLines - 1 && (
-                    <span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-1 animate-pulse align-middle" />
-                  )}
+                  {i === visibleLines - 1 && <span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-1 animate-pulse align-middle" />}
                 </div>
               ))}
-              {visibleLines === 0 && (
-                <div className="text-gray-600">
-                  &nbsp;<span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-1 animate-pulse align-middle" />
-                </div>
-              )}
+              {visibleLines === 0 && <div className="text-gray-600">&nbsp;<span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-1 animate-pulse align-middle" /></div>}
             </div>
           </div>
         </div>
@@ -226,42 +242,51 @@ const ArticleInput = () => {
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+      <style>{`
+        .cf-hero-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 64px; align-items: center; }
+        .cf-step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 80px; }
+        .cf-step-grid-last { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .cf-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 48px; }
+        .cf-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+        .cf-nav-links { display: flex; align-items: center; gap: 24px; }
+        @media (max-width: 1000px) {
+          .cf-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .cf-reel-stack { display: none !important; }
+          .cf-step-grid, .cf-step-grid-last { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .cf-flip { order: 0 !important; }
+          .cf-features-grid { grid-template-columns: 1fr 1fr !important; }
+          .cf-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+          .cf-nav-links { display: none !important; }
+        }
+        @media (max-width: 600px) {
+          .cf-features-grid { grid-template-columns: 1fr !important; }
+          .cf-footer-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
-      <div className="min-h-screen bg-[#0a0a0a] text-white" style={{ fontFamily: "system-ui, sans-serif" }}>
-
-        {/* Subtle noise texture overlay */}
-        <div
-          className="fixed inset-0 pointer-events-none z-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundSize: "200px 200px",
-          }}
-        />
+      <div style={{ background: C.bg, color: C.fg, fontFamily: '"Geist", system-ui, sans-serif', minHeight: "100vh" }}>
 
         {/* ── Nav ── */}
-        <nav className="fixed top-0 inset-x-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-gray-800/60">
-          <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", background: "oklch(14% 0.015 250 / 0.85)", borderBottom: `1px solid ${C.strokeSoft}` }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 28, height: 28, background: C.accent, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="oklch(14% 0.015 250)"><polygon points="6,3 20,12 6,21"/></svg>
               </div>
-              <span className="font-bold text-[15px] tracking-tight">ClipFrom</span>
+              <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em" }}>ClipFrom</span>
             </div>
-            <div className="hidden md:flex items-center gap-6">
-              <button
-                onClick={() => navigate("/features")}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                Features
-              </button>
-              {["Showcase", "Pricing"].map((link) => (
-                <button key={link} className="text-sm text-gray-400 hover:text-white transition-colors cursor-not-allowed opacity-50">{link}</button>
+            <div className="cf-nav-links">
+              <button onClick={() => navigate("/features")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0, transition: "color 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = C.fg)} onMouseLeave={e => (e.currentTarget.style.color = C.fgMuted)}>Features</button>
+              {["Showcase", "Pricing"].map(l => (
+                <span key={l} style={{ color: C.fgDim, fontSize: 14, opacity: 0.5, cursor: "not-allowed" }}>{l}</span>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <button className="text-sm text-gray-400 hover:text-white transition-colors opacity-50 cursor-not-allowed">Login</button>
-              <button className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 rounded-lg text-sm font-semibold transition-colors">
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ color: C.fgDim, fontSize: 14, opacity: 0.5, cursor: "not-allowed" }}>Login</span>
+              <button onClick={() => heroRef.current?.scrollIntoView({ behavior: "smooth" })}
+                style={{ padding: "7px 18px", background: C.accent, border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, color: "oklch(14% 0.015 250)", cursor: "pointer" }}>
                 Get Started
               </button>
             </div>
@@ -269,137 +294,86 @@ const ArticleInput = () => {
         </nav>
 
         {/* ── Hero ── */}
-        <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-          {/* Background glow */}
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at top, rgba(16,185,129,0.07) 0%, transparent 65%)" }}
-          />
+        <section ref={heroRef} style={{ position: "relative", paddingTop: 112, paddingBottom: 96, paddingLeft: 24, paddingRight: 24, overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 800, height: 500, pointerEvents: "none",
+            background: "radial-gradient(ellipse at top, oklch(72% 0.17 155 / 0.07) 0%, transparent 65%)" }} />
+          <div style={{ maxWidth: 1120, margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <div className="cf-hero-grid">
 
-          <div className="max-w-6xl mx-auto relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-              {/* Left: copy + form */}
+              {/* Left */}
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 text-xs font-medium mb-8 tracking-wide uppercase">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  AI-Powered Video Creation
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", borderRadius: 999,
+                  border: "1px solid oklch(72% 0.17 155 / 0.3)", background: "oklch(72% 0.17 155 / 0.06)",
+                  color: C.accent, fontSize: 11, fontFamily: mono, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 28 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
+                  Article → Reels in minutes
                 </div>
-
-                <h1
-                  className="mb-6 leading-[1.05] tracking-tight"
-                  style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(2.8rem, 5vw, 4.2rem)", fontWeight: 700 }}
-                >
-                  Turn any article into<br />
-                  <em style={{ color: "#10b981", fontStyle: "italic" }}>a cinematic story.</em>
+                <h1 style={{ fontFamily: serif, fontSize: "clamp(2.8rem, 4.5vw, 4rem)", fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.02em", margin: "0 0 20px" }}>
+                  Turn any article into<br /><em style={{ color: C.accent }}>Reels that perform.</em>
                 </h1>
-
-                <p className="text-gray-400 text-base leading-relaxed max-w-md mb-10">
-                  Paste an article URL and let our AI analyze the narrative, generate voiceovers, curate visuals, and produce your next viral short-form video.
+                <p style={{ color: C.fgMuted, fontSize: 16, lineHeight: 1.65, maxWidth: 420, margin: "0 0 36px" }}>
+                  Paste a URL, walk away. ClipFrom writes the script, records the voice, sources B-roll, and stitches five 9:16 clips — ready to post on Instagram.
                 </p>
 
-                {/* ── Input form ── */}
-                <form onSubmit={handleSubmit} className="max-w-lg">
-
+                <form onSubmit={handleSubmit} style={{ maxWidth: 480 }}>
                   {/* Mode tabs */}
-                  <div className="flex gap-1.5 mb-4 p-1 bg-gray-900 border border-gray-800 rounded-xl w-fit">
-                    <button
-                      type="button"
-                      onClick={() => setInputMode("url")}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        inputMode === "url"
-                          ? "bg-emerald-500 text-white shadow-sm"
-                          : "text-gray-500 hover:text-gray-300"
-                      }`}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                        <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-                      </svg>
-                      URL
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setInputMode("text")}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        inputMode === "text"
-                          ? "bg-emerald-500 text-white shadow-sm"
-                          : "text-gray-500 hover:text-gray-300"
-                      }`}
-                    >
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
-                      </svg>
-                      Paste Text
-                    </button>
+                  <div style={{ display: "flex", gap: 4, marginBottom: 12, padding: 4, background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 12, width: "fit-content" }}>
+                    {(["url", "text"] as const).map(mode => (
+                      <button key={mode} type="button" onClick={() => setInputMode(mode)}
+                        style={{ padding: "6px 18px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s",
+                          background: inputMode === mode ? C.accent : "transparent",
+                          color: inputMode === mode ? "oklch(14% 0.015 250)" : C.fgDim }}>
+                        {mode === "url" ? "URL" : "Paste Text"}
+                      </button>
+                    ))}
                   </div>
 
                   {/* Input card */}
-                  <div className="bg-gray-900/80 border border-gray-700/80 rounded-2xl overflow-hidden backdrop-blur-sm" style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 24px 48px rgba(0,0,0,0.4)" }}>
-
-                    {/* Article input */}
-                    <div className="p-4 border-b border-gray-800/60">
+                  <div style={{ background: C.surface, border: `1px solid ${C.strokeMed}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 48px oklch(0% 0 0 / 0.4)" }}>
+                    <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.strokeSoft}` }}>
                       {inputMode === "url" ? (
-                        <div className="flex items-center gap-3">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500 flex-shrink-0">
-                            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-                            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0 }}>
+                            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
                           </svg>
-                          <input
-                            type="url"
-                            value={articleUrl}
-                            onChange={(e) => setArticleUrl(e.target.value)}
-                            placeholder="https://your-article.com/story"
-                            className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none"
-                          />
+                          <div style={{ position: "relative", flex: 1 }}>
+                            <input type="text" value={articleUrl} onChange={e => setArticleUrl(e.target.value)}
+                              style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14, fontFamily: mono, position: "relative", zIndex: 1 }} />
+                            {!articleUrl && (
+                              <div style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none", fontFamily: mono, fontSize: 14, color: C.fgDim, display: "flex", alignItems: "center", lineHeight: "normal" }}>
+                                {typedUrl}<span style={{ display: "inline-block", width: 1, height: "1em", background: C.accent, marginLeft: 1, verticalAlign: "middle" }} />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ) : (
-                        <textarea
-                          value={articleText}
-                          onChange={(e) => setArticleText(e.target.value)}
-                          placeholder="Paste your article or content here…"
-                          rows={4}
-                          className="w-full bg-transparent text-sm text-white placeholder-gray-600 outline-none resize-none leading-relaxed"
-                        />
+                        <textarea value={articleText} onChange={e => setArticleText(e.target.value)}
+                          placeholder="Paste your article or content here…" rows={4}
+                          style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14, resize: "none", lineHeight: 1.6, fontFamily: '"Geist", system-ui, sans-serif' }} />
                       )}
                     </div>
-
-                    {/* Email input */}
-                    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-800/60">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500 flex-shrink-0">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}` }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0 }}>
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
                       </svg>
-                      <input
-                        type="email"
-                        value={userEmail}
-                        onChange={(e) => setUserEmail(e.target.value)}
+                      <input type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)}
                         placeholder="your@email.com — we'll notify you when it's ready"
-                        className="flex-1 bg-transparent text-sm text-white placeholder-gray-600 outline-none"
-                      />
+                        style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14 }} />
                     </div>
-
-                    {/* Submit */}
-                    <div className="p-3">
-                      <button
-                        type="submit"
-                        className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
-                        style={{ boxShadow: "0 0 20px rgba(16,185,129,0.25)" }}
-                      >
-                        Generate Video
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
+                    <div style={{ padding: 10 }}>
+                      <button type="submit" style={{ width: "100%", padding: "13px 0", background: C.accent, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                        color: "oklch(14% 0.015 250)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        boxShadow: "0 0 20px oklch(72% 0.17 155 / 0.3)" }}>
+                        Generate my video
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                       </button>
                     </div>
                   </div>
 
-                  {/* Trust line */}
-                  <div className="flex items-center gap-4 mt-4 px-1">
-                    {["9:16 vertical format", "AI voiceover", "10–15 min render"].map((item) => (
-                      <span key={item} className="flex items-center gap-1.5 text-[11px] text-gray-600">
-                        <span className="w-1 h-1 rounded-full bg-emerald-600" />
+                  <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 14 }}>
+                    {["9:16 vertical", "AI voiceover", "~3 min render"].map(item => (
+                      <span key={item} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.fgDim, fontFamily: mono }}>
+                        <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
                         {item}
                       </span>
                     ))}
@@ -407,167 +381,360 @@ const ArticleInput = () => {
                 </form>
               </div>
 
-              {/* Right: product mockup */}
-              <div className="hidden lg:flex items-center justify-center">
-                <div className="relative w-72 h-96">
-
-                  {/* Back card — rotated left */}
-                  <div
-                    className="absolute top-4 -left-6 w-40 h-72 rounded-2xl border border-gray-800 overflow-hidden"
-                    style={{ background: "linear-gradient(170deg, #141a1f 0%, #0d1014 100%)", transform: "rotate(-6deg)", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}
-                  >
-                    <div className="absolute inset-0 opacity-20" style={{ background: "linear-gradient(to bottom, rgba(16,185,129,0.15), transparent 40%)" }} />
-                    <div className="absolute bottom-5 left-0 right-0 px-3">
-                      <div className="bg-black/50 rounded-lg px-2 py-1">
-                        <p className="text-[7px] text-gray-400 leading-tight">The future of AI is already here and it's reshaping...</p>
+              {/* Right: reel stack */}
+              <div className="cf-reel-stack" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "relative", width: 280, height: 420 }}>
+                  {/* Back left */}
+                  <div style={{ position: "absolute", top: 20, left: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(-7deg)",
+                    background: "linear-gradient(160deg, oklch(22% 0.02 200), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 155 / 0.07), transparent 50%)" }} />
+                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
+                      <div style={{ background: "oklch(0% 0 0 / 0.5)", borderRadius: 6, padding: "4px 7px" }}>
+                        <p style={{ fontSize: 7, color: C.fgMuted, lineHeight: 1.4 }}>The 4-day work week is proving skeptics wrong...</p>
                       </div>
                     </div>
                   </div>
-
-                  {/* Back card — rotated right */}
-                  <div
-                    className="absolute top-4 -right-6 w-40 h-72 rounded-2xl border border-gray-800 overflow-hidden"
-                    style={{ background: "linear-gradient(170deg, #1a1a14 0%, #0d0d0a 100%)", transform: "rotate(6deg)", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}
-                  >
-                    <div className="absolute inset-0 opacity-20" style={{ background: "linear-gradient(to bottom, rgba(16,185,129,0.1), transparent 40%)" }} />
-                    <div className="absolute bottom-5 left-0 right-0 px-3">
-                      <div className="h-1 bg-gray-700 rounded-full mb-2" />
-                      <div className="h-1 bg-gray-800 rounded-full w-3/4" />
+                  {/* Back right */}
+                  <div style={{ position: "absolute", top: 20, right: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(7deg)",
+                    background: "linear-gradient(160deg, oklch(20% 0.02 155), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 155 / 0.05), transparent 50%)" }} />
+                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
+                      <div style={{ height: 3, background: C.strokeSoft, borderRadius: 999, marginBottom: 5 }} />
+                      <div style={{ height: 3, background: "oklch(100% 0 0 / 0.04)", borderRadius: 999, width: "70%" }} />
                     </div>
                   </div>
-
-                  {/* Front card — active */}
-                  <div
-                    className="absolute inset-x-8 top-0 bottom-0 rounded-2xl border border-gray-700/80 overflow-hidden z-10"
-                    style={{
-                      background: "linear-gradient(160deg, #1c2a20 0%, #0d1410 50%, #0a0a0a 100%)",
-                      boxShadow: "0 0 0 1px rgba(16,185,129,0.12), 0 32px 64px rgba(0,0,0,0.6), 0 0 40px rgba(16,185,129,0.08)",
-                    }}
-                  >
-                    {/* Scanline texture */}
-                    <div
-                      className="absolute inset-0 opacity-[0.04] pointer-events-none"
-                      style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 4px)" }}
-                    />
-
-                    {/* Top status bar */}
-                    <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 pt-3 pb-2">
-                      <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[8px] text-emerald-400 font-semibold uppercase tracking-widest">Live</span>
+                  {/* Front */}
+                  <div style={{ position: "absolute", left: 30, right: 30, top: 0, bottom: 40, borderRadius: 18, border: "1px solid oklch(100% 0 0 / 0.12)", overflow: "hidden", zIndex: 10,
+                    background: "linear-gradient(160deg, oklch(24% 0.03 155), oklch(18% 0.02 200), oklch(14% 0.015 250))",
+                    boxShadow: "0 0 0 1px oklch(72% 0.17 155 / 0.1), 0 32px 64px oklch(0% 0 0 / 0.6), 0 0 40px oklch(72% 0.17 155 / 0.06)" }}>
+                    <div style={{ position: "absolute", inset: 0, opacity: 0.04, pointerEvents: "none",
+                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 4px)" }} />
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 12px 8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
+                        <span style={{ fontFamily: mono, fontSize: 7, color: C.accent, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>Live</span>
                       </div>
-                      <span className="text-[8px] text-gray-600">Clip 3 / 5</span>
+                      <span style={{ fontFamily: mono, fontSize: 7, color: C.fgDim }}>Clip 3 / 5</span>
                     </div>
-
-                    {/* Center play area */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "oklch(100% 0 0 / 0.06)", border: "1px solid oklch(100% 0 0 / 0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
                       </div>
                     </div>
-
-                    {/* Caption overlay — pill style */}
-                    <div className="absolute bottom-10 left-0 right-0 flex justify-center px-3">
-                      <div
-                        className="bg-black/60 rounded-full px-3 py-1.5"
-                        style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.6)" }}
-                      >
-                        <p className="text-white text-[9px] font-bold text-center leading-tight">
-                          AI is rewriting the future of work
-                        </p>
+                    <div style={{ position: "absolute", bottom: 32, left: 0, right: 0, display: "flex", justifyContent: "center", padding: "0 12px" }}>
+                      <div style={{ background: "oklch(0% 0 0 / 0.65)", borderRadius: 999, padding: "6px 14px" }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textAlign: "center", lineHeight: 1.3 }}>AI is rewriting the future of work</p>
                       </div>
                     </div>
-
-                    {/* Bottom progress bar */}
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-400 rounded-full w-3/5" />
+                    <div style={{ position: "absolute", bottom: 14, left: 14, right: 14 }}>
+                      <div style={{ height: 2, background: "oklch(100% 0 0 / 0.1)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ width: "60%", height: "100%", background: C.accent, borderRadius: 999 }} />
                       </div>
                     </div>
-
-                    {/* AI badge */}
-                    <div className="absolute top-10 right-3">
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1">
-                        <span className="text-[7px] font-semibold text-emerald-400 uppercase tracking-widest">AI</span>
+                    <div style={{ position: "absolute", top: 36, right: 10 }}>
+                      <div style={{ background: "oklch(72% 0.17 155 / 0.1)", border: "1px solid oklch(72% 0.17 155 / 0.2)", borderRadius: 7, padding: "3px 8px" }}>
+                        <span style={{ fontFamily: mono, fontSize: 7, fontWeight: 600, color: C.accent, letterSpacing: "0.1em", textTransform: "uppercase" }}>AI</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Stats below mockup */}
-                  <div className="absolute -bottom-12 left-0 right-0 flex justify-center gap-6">
-                    {[["5", "AI clips"], ["1", "voiceover"], ["9:16", "format"]].map(([val, label]) => (
-                      <div key={label} className="text-center">
-                        <p className="text-sm font-bold text-white tabular-nums">{val}</p>
-                        <p className="text-[9px] text-gray-600 uppercase tracking-wide">{label}</p>
+                  {/* Stats below */}
+                  <div style={{ position: "absolute", bottom: -4, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 28 }}>
+                    {[["5", "clips"], ["1", "voice"], ["9:16", "format"]].map(([val, label]) => (
+                      <div key={label} style={{ textAlign: "center" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>{val}</p>
+                        <p style={{ fontFamily: mono, fontSize: 9, color: C.fgDim, textTransform: "uppercase", letterSpacing: "0.08em", margin: "2px 0 0" }}>{label}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </section>
 
+        {/* ── Stats bar ── */}
+        <div style={{ background: C.surface, borderTop: `1px solid ${C.strokeSoft}`, borderBottom: `1px solid ${C.strokeSoft}`, padding: "16px 24px" }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
+            {["~3 min render", "5 clips", "4 voices", "6 transitions", "1080p", "0 code"].map((stat, i, arr) => (
+              <span key={stat} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 12, color: C.fgMuted }}>{stat}</span>
+                {i < arr.length - 1 && <span style={{ color: C.fgDim }}>·</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* ── How It Works ── */}
-        <section className="py-20 px-6 border-t border-gray-800/60">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-3">From Idea to Premiere</h2>
-              <p className="text-gray-400 text-sm max-w-md mx-auto">Three steps stand between your article and a viral video.</p>
+        <section style={{ padding: "96px 24px" }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 80 }}>
+              <div style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>— How it works</div>
+              <h2 style={{ fontFamily: serif, fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.1, margin: 0 }}>
+                Three steps. One paste. <em>Done.</em>
+              </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {HOW_IT_WORKS.map((item) => (
-                <div key={item.step} className="bg-gray-900 border border-gray-800 rounded-xl p-6 relative">
-                  <div className="absolute top-4 right-4 text-[11px] font-bold text-gray-700 tabular-nums">{item.step}</div>
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
-                    {item.icon}
+
+            {/* Step 01 */}
+            <div className="cf-step-grid">
+              <div>
+                <div style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>STEP 01 / FETCH</div>
+                <h3 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 16px" }}>Paste a URL.<br/>We fetch everything.</h3>
+                <p style={{ color: C.fgMuted, fontSize: 15, lineHeight: 1.65, margin: "0 0 20px" }}>Drop any article link — blog post, news story, research paper. Our pipeline fetches the full text, finds the narrative arc, and generates hook variants before you close the tab.</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["Works with any public URL", "Or paste the article text directly", "Multi-language support coming soon"].map(item => (
+                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.fgMuted }}>
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke={C.accent} strokeWidth="2"><path d="M2 6l3 3 5-6"/></svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div style={{ background: C.surface, border: `1px solid ${C.strokeMed}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.3)" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}`, display: "flex", alignItems: "center", gap: 6 }}>
+                    {["#ff5f57", "#febc2e", "#28c840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+                    <span style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, marginLeft: 8 }}>Processing article…</span>
                   </div>
-                  <h3 className="font-semibold text-sm mb-2">{item.title}</h3>
-                  <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
+                  <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { label: "Article fetched", val: "1,842 words", done: true },
+                      { label: "Narrative parsed", val: "5 beats", done: true },
+                      { label: "Hooks generated", val: "25 variants", done: true },
+                      { label: "Matching B-roll", val: "rendering…", done: false },
+                    ].map(({ label, val, done }) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                          background: done ? "oklch(72% 0.17 155 / 0.15)" : "oklch(60% 0.15 80 / 0.15)",
+                          color: done ? C.accent : "oklch(80% 0.15 80)" }}>
+                          {done
+                            ? <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6l3 3 5-6"/></svg>
+                            : <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="2"/></svg>}
+                        </div>
+                        <span style={{ fontFamily: mono, fontSize: 12, color: C.fgMuted, flex: 1 }}>{label}</span>
+                        <span style={{ fontFamily: mono, fontSize: 12, color: done ? C.accent : "oklch(80% 0.15 80)", fontWeight: 500 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 02 */}
+            <div className="cf-step-grid">
+              <div className="cf-flip" style={{ order: 2 }}>
+                <div style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>STEP 02 / EDIT</div>
+                <h3 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 16px" }}>Pick your hooks.<br/>Edit if you want.</h3>
+                <p style={{ color: C.fgMuted, fontSize: 15, lineHeight: 1.65, margin: "0 0 20px" }}>Every clip gets five hook variants — different angles, tones, and energy. Lock the line that sounds like you, or rewrite in a tap.</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["5 hooks × 5 clips", "Inline editing with keyword highlighting", "Regenerate until it's right"].map(item => (
+                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.fgMuted }}>
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke={C.accent} strokeWidth="2"><path d="M2 6l3 3 5-6"/></svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="cf-flip" style={{ order: 1 }}>
+                <div style={{ background: C.surface, border: `1px solid ${C.strokeMed}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.3)" }}>
+                  <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: mono, fontSize: 11, color: C.fgMuted }}>Clip 3 · Pick a hook</span>
+                    <span style={{ fontFamily: mono, fontSize: 10, color: C.fgDim }}>5 options</span>
+                  </div>
+                  <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                    {[
+                      { num: "01", text: "AI isn't taking your job — it's rewriting it.", selected: false },
+                      { num: "02", text: "Most founders get this exactly backwards.", selected: true },
+                      { num: "03", text: "What nobody tells you about AI and work.", selected: false },
+                      { num: "04", text: "I tracked 200 AI rollouts. Here's what happened.", selected: false },
+                    ].map(opt => (
+                      <div key={opt.num} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 10px", borderRadius: 8,
+                        background: opt.selected ? "oklch(72% 0.17 155 / 0.08)" : C.surfaceRaised,
+                        border: `1px solid ${opt.selected ? "oklch(72% 0.17 155 / 0.25)" : C.strokeSoft}` }}>
+                        <span style={{ fontFamily: mono, fontSize: 10, color: opt.selected ? C.accent : C.fgDim, flexShrink: 0, marginTop: 2 }}>{opt.num}</span>
+                        <span style={{ fontSize: 12, lineHeight: 1.5, color: opt.selected ? C.fg : C.fgMuted }}>{opt.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="cf-step-grid-last">
+              <div>
+                <div style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>STEP 03 / POST</div>
+                <h3 style={{ fontFamily: serif, fontSize: 34, fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 16px" }}>Download + caption.<br/>Paste into Reels.</h3>
+                <p style={{ color: C.fgMuted, fontSize: 15, lineHeight: 1.65, margin: "0 0 20px" }}>Five clips, stitched with your chosen transition, voiceover, captions, and B-roll — delivered as one finished 9:16 video. Instagram caption included.</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["9:16 vertical · 1080p · MP4", "Auto-generated IG caption with hashtags", "Email delivery — walk away while it renders"].map(item => (
+                    <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.fgMuted }}>
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke={C.accent} strokeWidth="2"><path d="M2 6l3 3 5-6"/></svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div style={{ background: C.surface, border: `1px solid ${C.strokeMed}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.3)" }}>
+                  <div style={{ padding: 16, borderBottom: `1px solid ${C.strokeSoft}`, display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ width: 52, height: 88, borderRadius: 8, background: "linear-gradient(160deg, oklch(30% 0.05 155), oklch(18% 0.03 200))", flexShrink: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: mono, fontSize: 12, color: C.fg, fontWeight: 500, marginBottom: 4 }}>ai-rewriting-work.mp4</div>
+                      <div style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, marginBottom: 12 }}>0:42 · 1080×1920 · 14.2 MB</div>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", background: C.accent, borderRadius: 6, fontSize: 11, fontWeight: 600, color: "oklch(14% 0.015 250)", cursor: "pointer" }}>
+                        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 2v9M4 7l4 4 4-4M3 14h10"/></svg>
+                        Download video
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ padding: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <span style={{ fontFamily: mono, fontSize: 10, color: C.fgDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>Instagram caption</span>
+                      <span style={{ fontFamily: mono, fontSize: 10, color: C.accent, cursor: "pointer" }}>Copy</span>
+                    </div>
+                    <p style={{ fontSize: 12, lineHeight: 1.7, color: C.fgMuted, margin: 0 }}>
+                      Most founders get this exactly backwards ↓<br/><br/>
+                      AI isn't replacing your team — it's changing what the team is for.{" "}
+                      <span style={{ color: C.fgDim }}>#AI #Founders #Productivity #Startups</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Features ── */}
+        <section id="features" style={{ padding: "96px 24px", borderTop: `1px solid ${C.strokeSoft}` }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>— The full pipeline</div>
+              <h2 style={{ fontFamily: serif, fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 16px" }}>
+                Everything you'd normally <em>hire out</em>.
+              </h2>
+              <p style={{ color: C.fgMuted, fontSize: 16, maxWidth: 480, margin: "0 auto" }}>Script, voice, B-roll, captions, transitions, stitching. ClipFrom does all of it.</p>
+            </div>
+            <div className="cf-features-grid">
+              {FEATURES.map(f => (
+                <div key={f.title} style={{ background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 14, padding: 24 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: "oklch(72% 0.17 155 / 0.08)", border: "1px solid oklch(72% 0.17 155 / 0.15)",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: C.accent, marginBottom: 14 }}>
+                    {f.icon}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{f.title}</div>
+                  <div style={{ fontSize: 13, color: C.fgMuted, lineHeight: 1.65 }}>{f.desc}</div>
+                </div>
+              ))}
+            </div>
+            {/* Transitions band */}
+            <div style={{ background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 16, padding: 28 }}>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Six transition styles, one click</div>
+                <div style={{ fontSize: 13, color: C.fgMuted }}>Pick the one that matches your vibe.</div>
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {TRANSITIONS.map((t, i) => (
+                  <button key={t.name} onClick={() => setActiveTransition(i)}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 10, cursor: "pointer", transition: "all 0.15s",
+                      background: activeTransition === i ? "oklch(72% 0.17 155 / 0.1)" : C.surfaceRaised,
+                      border: `1px solid ${activeTransition === i ? "oklch(72% 0.17 155 / 0.4)" : C.strokeSoft}`,
+                      color: activeTransition === i ? C.accent : C.fgMuted }}>
+                    <div style={{ width: 36, height: 36 }}>{t.icon}</div>
+                    <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.06em" }}>{t.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section style={{ padding: "96px 24px", borderTop: `1px solid ${C.strokeSoft}` }}>
+          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <div style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>— Common questions</div>
+              <h2 style={{ fontFamily: serif, fontSize: "clamp(2rem, 3.5vw, 3rem)", fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.1, margin: 0 }}>
+                Answers, <em>upfront.</em>
+              </h2>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {FAQ_ITEMS.map((item, i) => (
+                <div key={i} style={{ background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 12, overflow: "hidden" }}>
+                  <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    style={{ width: "100%", padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+                    <span style={{ fontSize: 15, fontWeight: 500, color: C.fg }}>{item.q}</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0, transition: "transform 0.2s", transform: openFaq === i ? "rotate(180deg)" : "none" }}>
+                      <path d="M4 6l4 4 4-4"/>
+                    </svg>
+                  </button>
+                  {openFaq === i && (
+                    <div style={{ padding: "0 20px 18px", fontSize: 14, color: C.fgMuted, lineHeight: 1.7 }}>{item.a}</div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── CTA banner ── */}
-        <section className="py-16 px-6 border-t border-gray-800/60">
-          <div className="max-w-2xl mx-auto">
-            <div
-              className="bg-gray-900 border border-emerald-500/20 rounded-2xl p-10 text-center"
-              style={{ boxShadow: "0 0 40px rgba(16,185,129,0.06)" }}
-            >
-              <h2 className="text-3xl font-bold mb-3">Ready to go viral?</h2>
-              <p className="text-gray-400 text-sm mb-8 max-w-sm mx-auto">
-                Join creators turning long-form content into short-form gold — every day.
-              </p>
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-bold text-sm transition-colors"
-              >
-                Start for Free
+        {/* ── CTA band ── */}
+        <section style={{ padding: "80px 24px", borderTop: `1px solid ${C.strokeSoft}` }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+            <div style={{ background: "linear-gradient(135deg, oklch(18% 0.025 155), oklch(16% 0.015 250))",
+              border: "1px solid oklch(72% 0.17 155 / 0.12)", borderRadius: 24, padding: "64px 48px", textAlign: "center",
+              boxShadow: "0 0 60px oklch(72% 0.17 155 / 0.06)" }}>
+              <h2 style={{ fontFamily: serif, fontSize: "clamp(2rem, 3vw, 2.8rem)", fontWeight: 400, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 16px" }}>
+                Your next post is <em>one paste away</em>.
+              </h2>
+              <p style={{ color: C.fgMuted, fontSize: 16, margin: "0 0 32px" }}>Drop a URL. Walk away. Come back to a Reel you'd be proud to post.</p>
+              <button onClick={() => heroRef.current?.scrollIntoView({ behavior: "smooth" })}
+                style={{ padding: "14px 32px", background: C.accent, border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700,
+                  color: "oklch(14% 0.015 250)", cursor: "pointer", boxShadow: "0 0 30px oklch(72% 0.17 155 / 0.3)" }}>
+                Generate my first video →
               </button>
+              <div style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, marginTop: 16 }}>Free to try · No credit card · ~3 min render</div>
             </div>
           </div>
         </section>
 
         {/* ── Footer ── */}
-        <footer className="border-t border-gray-800/60 py-10 px-6">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-emerald-500 rounded-md flex items-center justify-center flex-shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+        <footer style={{ borderTop: `1px solid ${C.strokeSoft}`, padding: "56px 24px 40px" }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+            <div className="cf-footer-grid">
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <div style={{ width: 26, height: 26, background: C.accent, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="oklch(14% 0.015 250)"><polygon points="6,3 20,12 6,21"/></svg>
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "-0.02em" }}>ClipFrom</span>
+                </div>
+                <p style={{ fontSize: 13, color: C.fgMuted, lineHeight: 1.7, maxWidth: 260, margin: 0 }}>Turn any article into short-form video that actually performs. Built for creators, newsletter writers, and content teams.</p>
               </div>
-              <span className="font-bold text-sm">ClipFrom</span>
-              <span className="text-gray-600 text-xs ml-2">AI video from any article</span>
-            </div>
-            <div className="flex items-center gap-6 text-xs text-gray-600">
-              {["Product", "Company", "Privacy", "Terms"].map((link) => (
-                <button key={link} className="hover:text-gray-400 transition-colors cursor-not-allowed opacity-60">{link}</button>
+              {[
+                { title: "Product", links: ["Features", "Showcase", "Pricing", "Changelog"] },
+                { title: "Resources", links: ["Hook library", "Creator guide", "Blog", "Help center"] },
+                { title: "Company", links: ["About", "Careers", "Contact", "Terms"] },
+              ].map(col => (
+                <div key={col.title}>
+                  <h4 style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 16px" }}>{col.title}</h4>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+                    {col.links.map(link => (
+                      <li key={link}>
+                        <a href="#" style={{ fontSize: 14, color: C.fgMuted, textDecoration: "none", transition: "color 0.15s" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = C.fg)}
+                          onMouseLeave={e => (e.currentTarget.style.color = C.fgMuted)}>{link}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
-            <p className="text-xs text-gray-700">© 2026 ClipFrom. All rights reserved.</p>
+            <div style={{ borderTop: `1px solid ${C.strokeSoft}`, paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, letterSpacing: "0.06em" }}>© 2026 CLIPFROM · ALL RIGHTS RESERVED</span>
+              <span style={{ fontFamily: mono, fontSize: 11, color: C.fgDim, letterSpacing: "0.06em" }}>MADE FOR CREATORS</span>
+            </div>
           </div>
         </footer>
 
