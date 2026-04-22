@@ -34,6 +34,8 @@ export default function VideoResults() {
   const [editingCaption, setEditingCaption] = useState(false);
   const [editedCaption, setEditedCaption] = useState("");
   const [copied, setCopied] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [posted, setPosted] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const triggeredRef = useRef(false);
 
@@ -169,6 +171,39 @@ export default function VideoResults() {
     });
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, [projectId, userEmail, navigate]);
+
+  const handlePostToInstagram = async () => {
+    if (!result.stitched_video_url) return;
+    setPosting(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/post-to-instagram`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            video_url: result.stitched_video_url,
+            caption: instagramCaption,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setPosted(true);
+        toast.success("Posted to Instagram!");
+      } else {
+        toast.error(data.error ?? "Instagram post failed");
+      }
+    } catch (err) {
+      toast.error("Could not reach Instagram");
+    } finally {
+      setPosting(false);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(instagramCaption);
@@ -370,6 +405,27 @@ export default function VideoResults() {
         <div className="flex items-center gap-2">
           <button className="px-4 py-1.5 border border-gray-700 hover:border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-colors">
             Refine Script
+          </button>
+          <button
+            onClick={handlePostToInstagram}
+            disabled={posting || posted}
+            className="flex items-center gap-2 px-4 py-1.5 border border-pink-500/40 hover:border-pink-500/70 bg-pink-500/10 hover:bg-pink-500/20 rounded-lg text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {posting ? (
+              <><Spinner size={13} /> Posting…</>
+            ) : posted ? (
+              <>
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Posted!
+              </>
+            ) : (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                </svg>
+                Post to Instagram
+              </>
+            )}
           </button>
           <a
             href={result.stitched_video_url!}
