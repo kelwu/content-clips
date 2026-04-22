@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -35,6 +36,12 @@ const navItems = [
 
 export default function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden">
@@ -88,18 +95,27 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Bottom links */}
         <div className="px-3 py-3 border-t border-gray-800 space-y-0.5">
+          {user && (
+            <div className="px-3 py-2 mb-1">
+              <p className="text-[10px] text-gray-600 font-medium uppercase tracking-wide">Signed in as</p>
+              <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+            </div>
+          )}
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed select-none">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="text-gray-500">
               <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             <span className="text-sm text-gray-400">Help</span>
           </div>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed select-none">
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-left"
+          >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="text-gray-500">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
             </svg>
             <span className="text-sm text-gray-400">Logout</span>
-          </div>
+          </button>
         </div>
       </aside>
 

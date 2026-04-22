@@ -3,10 +3,13 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ArticleInput from "./pages/ArticleInput";
 import CaptionEditor from "./pages/CaptionEditor";
 import VideoResults from "./pages/VideoResults";
 import Features from "./pages/Features";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,14 +20,17 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<ArticleInput />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/editor" element={<CaptionEditor />} />
-          <Route path="/results/:projectId" element={<VideoResults />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<ArticleInput />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/editor" element={<ProtectedRoute><CaptionEditor /></ProtectedRoute>} />
+            <Route path="/results/:projectId" element={<ProtectedRoute><VideoResults /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

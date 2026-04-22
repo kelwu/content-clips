@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LOG_LINES = [
   { text: "$ Initializing AI pipeline...", color: "text-gray-400" },
@@ -102,6 +103,7 @@ const ArticleInput = () => {
   const [activeTransition, setActiveTransition] = useState(0);
 
   const navigate = useNavigate();
+  const { user } = useAuth();
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStateRef = useRef({ idx: 0, charIdx: 0, typing: true });
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -154,8 +156,10 @@ const ArticleInput = () => {
       if (!content) { toast.error("Please paste some article text"); return; }
       if (content.length < 50) { toast.error("Please paste more text — at least a paragraph"); return; }
     }
-    if (!userEmail.trim()) { toast.error("Please enter your email address"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) { toast.error("Please enter a valid email address"); return; }
+    if (!user) { navigate("/login?returnTo=/"); return; }
+
+    const resolvedEmail = user.email ?? userEmail.trim();
+    if (!resolvedEmail) { toast.error("Could not determine email address"); return; }
 
     setIsLoading(true);
     try {
@@ -164,14 +168,14 @@ const ArticleInput = () => {
       if (!webhookUrl) throw new Error("Webhook URL not configured");
 
       const { data: projectData, error: projectError } = await supabase
-        .from("projects").insert({ article_url: inputMode === "url" ? content : null, status: "processing" }).select("id").single();
+        .from("projects").insert({ article_url: inputMode === "url" ? content : null, status: "processing", user_id: user.id }).select("id").single();
       if (projectError) throw new Error("Failed to initialize project. Please try again.");
 
       const projectId = projectData.id;
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(useAgentPipeline && { "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY }) },
-        body: JSON.stringify({ content, type: inputMode, project_id: projectId, user_email: userEmail }),
+        body: JSON.stringify({ content, type: inputMode, project_id: projectId, user_email: resolvedEmail }),
       });
       if (!response.ok) throw new Error(`Pipeline failed: ${response.statusText}`);
 
@@ -193,7 +197,7 @@ const ArticleInput = () => {
             const captionForEditor = Array.isArray(captionObj)
               ? captionObj.reduce((acc: Record<string, string>, text: string, i: number) => ({ ...acc, [`text${i + 1}`]: text }), {})
               : captionObj;
-            navigate("/editor", { state: { projectId, userEmail, content, inputMode, captions: captionForEditor } });
+            navigate("/editor", { state: { projectId, userEmail: resolvedEmail, content, inputMode, captions: captionForEditor } });
           }
         } catch { /* continue polling */ }
       }, 5000);
@@ -352,14 +356,23 @@ const ArticleInput = () => {
                           style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14, resize: "none", lineHeight: 1.6, fontFamily: '"Geist", system-ui, sans-serif' }} />
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}` }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0 }}>
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                      <input type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)}
-                        placeholder="your@email.com — we'll notify you when it's ready"
-                        style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14 }} />
-                    </div>
+                    {user ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}` }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0 }}>
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <span style={{ flex: 1, fontSize: 14, color: C.fgMuted }}>Notification → <span style={{ color: C.fg }}>{user.email}</span></span>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${C.strokeSoft}` }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.fgDim} strokeWidth="2" style={{ flexShrink: 0 }}>
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <input type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)}
+                          placeholder="your@email.com — we'll notify you when it's ready"
+                          style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14 }} />
+                      </div>
+                    )}
                     <div style={{ padding: 10 }}>
                       <button type="submit" style={{ width: "100%", padding: "13px 0", background: C.accent, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
                         color: "oklch(14% 0.015 250)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
