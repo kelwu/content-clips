@@ -288,7 +288,12 @@ const ArticleInput = () => {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ color: C.fgDim, fontSize: 14, opacity: 0.5, cursor: "not-allowed" }}>Login</span>
+              {user ? (
+                <button onClick={() => navigate("/editor")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0 }}>Dashboard</button>
+              ) : (
+                <button onClick={() => navigate("/login")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0, transition: "color 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = C.fg)} onMouseLeave={e => (e.currentTarget.style.color = C.fgMuted)}>Login</button>
+              )}
               <button onClick={() => heroRef.current?.scrollIntoView({ behavior: "smooth" })}
                 style={{ padding: "7px 18px", background: C.accent, border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, color: "oklch(14% 0.015 250)", cursor: "pointer" }}>
                 Get Started
