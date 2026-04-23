@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 
 interface ResultData {
@@ -36,8 +37,14 @@ export default function VideoResults() {
   const [copied, setCopied] = useState(false);
   const [posting, setPosting] = useState(false);
   const [posted, setPosted] = useState(false);
+  const [captionOutro, setCaptionOutro] = useState("");
+  const [editingOutro, setEditingOutro] = useState(false);
+  const [savingOutro, setSavingOutro] = useState(false);
+  const [outroSaved, setOutroSaved] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const triggeredRef = useRef(false);
+
+  const { session, user } = useAuth();
 
   const projectId = location.state?.projectId || projectIdParam;
   const userEmail = location.state?.userEmail;
@@ -50,7 +57,8 @@ export default function VideoResults() {
   const clips = [result.video_url_1, result.video_url_2, result.video_url_3, result.video_url_4, result.video_url_5];
   const videoUrlsFilled = clips.filter(Boolean).length;
   const stitchedReady = !!result.stitched_video_url;
-  const instagramCaption = editedCaption || result.description || result.final_caption || "";
+  const baseCaption = editedCaption || result.description || result.final_caption || "";
+  const instagramCaption = captionOutro ? `${baseCaption}\n\n${captionOutro}` : baseCaption;
   const charCount = instagramCaption.length;
 
   // Process Observability: derive step states from DB status
@@ -135,7 +143,7 @@ export default function VideoResults() {
           headers: {
             "Content-Type": "application/json",
             ...(useAgentPipeline && {
-              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
               "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             }),
           },
@@ -182,7 +190,7 @@ export default function VideoResults() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
             "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
@@ -205,10 +213,26 @@ export default function VideoResults() {
     }
   };
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("user_profiles").select("caption_outro").eq("id", user.id).maybeSingle()
+      .then(({ data }) => { if (data?.caption_outro) setCaptionOutro(data.caption_outro); });
+  }, [user?.id]);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(instagramCaption);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveOutro = async () => {
+    if (!user) return;
+    setSavingOutro(true);
+    await supabase.from("user_profiles").upsert({ id: user.id, caption_outro: captionOutro, updated_at: new Date().toISOString() });
+    setSavingOutro(false);
+    setEditingOutro(false);
+    setOutroSaved(true);
+    setTimeout(() => setOutroSaved(false), 2000);
   };
 
   const contentPreview = content.length > 200 ? content.slice(0, 200) + "…" : content;
@@ -427,6 +451,17 @@ export default function VideoResults() {
               </>
             )}
           </button>
+          <button
+            onClick={() => navigate(`/studio/${projectId}`, {
+              state: { result, captionStyle, transitionStyle, captions: displayCaptions, content },
+            })}
+            className="flex items-center gap-2 px-4 py-1.5 border border-gray-700 hover:border-gray-500 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-colors"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Open Editor
+          </button>
           <a
             href={result.stitched_video_url!}
             download
@@ -521,6 +556,56 @@ export default function VideoResults() {
                     <Spinner size={14} />
                     <span className="text-xs">Generating caption…</span>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Caption Outro */}
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+                <div>
+                  <h3 className="font-semibold text-sm">Caption Outro</h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5">Appended to every Instagram caption</p>
+                </div>
+                {!editingOutro && (
+                  <button
+                    onClick={() => setEditingOutro(true)}
+                    className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors"
+                  >
+                    {captionOutro ? "Edit" : "Add"}
+                  </button>
+                )}
+              </div>
+              <div className="p-4">
+                {editingOutro ? (
+                  <>
+                    <textarea
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 resize-none focus:outline-none focus:border-emerald-500 leading-relaxed"
+                      rows={4}
+                      placeholder={'e.g. "Comment LINK and I\'ll DM you the full guide 👇"'}
+                      value={captionOutro}
+                      onChange={(e) => setCaptionOutro(e.target.value)}
+                    />
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => setEditingOutro(false)}
+                        className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveOutro}
+                        disabled={savingOutro}
+                        className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        {savingOutro ? "Saving…" : outroSaved ? "✓ Saved!" : "Save"}
+                      </button>
+                    </div>
+                  </>
+                ) : captionOutro ? (
+                  <p className="text-xs text-gray-400 leading-relaxed whitespace-pre-wrap">{captionOutro}</p>
+                ) : (
+                  <p className="text-xs text-gray-600 italic">No outro set — click Add to create one.</p>
                 )}
               </div>
             </div>

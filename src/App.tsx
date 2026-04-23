@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ArticleInput from "./pages/ArticleInput";
 import CaptionEditor from "./pages/CaptionEditor";
 import VideoResults from "./pages/VideoResults";
+import Studio from "./pages/Studio";
 import Features from "./pages/Features";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/editor" element={<ProtectedRoute><CaptionEditor /></ProtectedRoute>} />
             <Route path="/results/:projectId" element={<ProtectedRoute><VideoResults /></ProtectedRoute>} />
+            <Route path="/studio/:projectId" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
