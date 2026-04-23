@@ -277,6 +277,12 @@ const ArticleInput = () => {
         .cf-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 48px; }
         .cf-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
         .cf-nav-links { display: flex; align-items: center; gap: 24px; }
+        @keyframes cf-float-l { 0%,100% { transform: rotate(-11deg) translateY(0px); } 50% { transform: rotate(-11deg) translateY(-12px); } }
+        @keyframes cf-float-c { 0%,100% { transform: rotate(-2deg) translateY(0px); } 50% { transform: rotate(-2deg) translateY(-9px); } }
+        @keyframes cf-float-r { 0%,100% { transform: rotate(9deg) translateY(0px); } 50% { transform: rotate(9deg) translateY(-14px); } }
+        .cf-card-l { animation: cf-float-l 5s ease-in-out infinite; }
+        .cf-card-c { animation: cf-float-c 5s ease-in-out infinite 0.6s; }
+        .cf-card-r { animation: cf-float-r 5s ease-in-out infinite 1.2s; }
         @media (max-width: 1000px) {
           .cf-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .cf-reel-stack { display: none !important; }
@@ -422,71 +428,119 @@ const ArticleInput = () => {
                 </form>
               </div>
 
-              {/* Right: reel stack */}
+              {/* Right: reel stack — 3-card fan */}
               <div className="cf-reel-stack" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "relative", width: 280, height: 420 }}>
-                  {/* Back left */}
-                  <div style={{ position: "absolute", top: 20, left: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(-7deg)",
-                    background: "linear-gradient(160deg, oklch(22% 0.02 200), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 280 / 0.07), transparent 50%)" }} />
-                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
-                      <div style={{ background: "oklch(0% 0 0 / 0.5)", borderRadius: 6, padding: "4px 7px" }}>
-                        <p style={{ fontSize: 7, color: C.fgMuted, lineHeight: 1.4 }}>The 4-day work week is proving skeptics wrong...</p>
-                      </div>
+                <div style={{ position: "relative", width: 460, height: 480 }}>
+
+                  {/* Left card — dark red, rotated left */}
+                  <div className="cf-card-l" style={{ position: "absolute", left: 0, top: 60, width: 178, height: 316, borderRadius: 20, overflow: "hidden", zIndex: 5,
+                    background: "linear-gradient(160deg, oklch(28% 0.07 15), oklch(18% 0.04 10), oklch(12% 0.02 0))",
+                    border: "1px solid oklch(100% 0 0 / 0.1)", boxShadow: "0 24px 48px oklch(0% 0 0 / 0.55)" }}>
+                    <div style={{ position: "absolute", inset: 0, opacity: 0.035, pointerEvents: "none",
+                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 4px)" }} />
+                    {/* LIVE badge */}
+                    <div style={{ position: "absolute", top: 12, left: 12, display: "flex", alignItems: "center", gap: 4, background: "oklch(0% 0 0 / 0.55)", borderRadius: 999, padding: "3px 8px" }}>
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#ff4444", display: "inline-block" }} />
+                      <span style={{ fontFamily: mono, fontSize: 7, color: "#fff", fontWeight: 600, letterSpacing: "0.08em" }}>LIVE</span>
                     </div>
-                  </div>
-                  {/* Back right */}
-                  <div style={{ position: "absolute", top: 20, right: -20, width: 150, height: 268, borderRadius: 16, border: `1px solid ${C.strokeSoft}`, overflow: "hidden", transform: "rotate(7deg)",
-                    background: "linear-gradient(160deg, oklch(20% 0.02 155), oklch(15% 0.015 250))", boxShadow: "0 20px 40px oklch(0% 0 0 / 0.5)" }}>
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, oklch(72% 0.17 280 / 0.05), transparent 50%)" }} />
-                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
-                      <div style={{ height: 3, background: C.strokeSoft, borderRadius: 999, marginBottom: 5 }} />
-                      <div style={{ height: 3, background: "oklch(100% 0 0 / 0.04)", borderRadius: 999, width: "70%" }} />
-                    </div>
-                  </div>
-                  {/* Front */}
-                  <div style={{ position: "absolute", left: 30, right: 30, top: 0, bottom: 40, borderRadius: 18, border: "1px solid oklch(100% 0 0 / 0.12)", overflow: "hidden", zIndex: 10,
-                    background: "linear-gradient(160deg, oklch(24% 0.03 155), oklch(18% 0.02 200), oklch(14% 0.015 250))",
-                    boxShadow: "0 0 0 1px oklch(72% 0.17 280 / 0.1), 0 32px 64px oklch(0% 0 0 / 0.6), 0 0 40px oklch(72% 0.17 280 / 0.06)" }}>
-                    <div style={{ position: "absolute", inset: 0, opacity: 0.04, pointerEvents: "none",
-                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 4px)" }} />
-                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 12px 8px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
-                        <span style={{ fontFamily: mono, fontSize: 7, color: C.accent, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>Live</span>
-                      </div>
-                      <span style={{ fontFamily: mono, fontSize: 7, color: C.fgDim }}>Clip 3 / 5</span>
-                    </div>
+                    {/* Play */}
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "oklch(100% 0 0 / 0.06)", border: "1px solid oklch(100% 0 0 / 0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+                      <div style={{ width: 40, height: 40, borderRadius: "50%", background: "oklch(100% 0 0 / 0.1)", border: "1px solid oklch(100% 0 0 / 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
                       </div>
                     </div>
-                    <div style={{ position: "absolute", bottom: 32, left: 0, right: 0, display: "flex", justifyContent: "center", padding: "0 12px" }}>
-                      <div style={{ background: "oklch(0% 0 0 / 0.65)", borderRadius: 999, padding: "6px 14px" }}>
-                        <p style={{ fontSize: 9, fontWeight: 700, textAlign: "center", lineHeight: 1.3 }}>AI is rewriting the future of work</p>
+                    {/* Caption */}
+                    <div style={{ position: "absolute", bottom: 28, left: 10, right: 10 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, lineHeight: 1.4, display: "flex", flexWrap: "wrap", gap: 3 }}>
+                        {["Most", "founders", "get", "this"].map(w => (
+                          <span key={w} style={{ background: "oklch(0% 0 0 / 0.7)", borderRadius: 4, padding: "2px 5px", color: "#fff" }}>{w}</span>
+                        ))}
+                        <span style={{ background: "oklch(72% 0.17 280)", borderRadius: 4, padding: "2px 5px", color: "oklch(14% 0.015 250)", fontWeight: 800 }}>backwards</span>
                       </div>
                     </div>
-                    <div style={{ position: "absolute", bottom: 14, left: 14, right: 14 }}>
+                    {/* Progress bar */}
+                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
+                      <div style={{ height: 2, background: "oklch(100% 0 0 / 0.1)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ width: "45%", height: "100%", background: "oklch(100% 0 0 / 0.5)", borderRadius: 999 }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center card — dark green, most prominent */}
+                  <div className="cf-card-c" style={{ position: "absolute", left: 118, top: 0, width: 210, height: 374, borderRadius: 22, overflow: "hidden", zIndex: 10,
+                    background: "linear-gradient(160deg, oklch(28% 0.07 155), oklch(20% 0.05 160), oklch(13% 0.02 165))",
+                    border: "1px solid oklch(100% 0 0 / 0.13)", boxShadow: `0 0 0 1px oklch(72% 0.17 280 / 0.12), 0 32px 64px oklch(0% 0 0 / 0.65), 0 0 50px oklch(72% 0.17 280 / 0.08)` }}>
+                    <div style={{ position: "absolute", inset: 0, opacity: 0.04, pointerEvents: "none",
+                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 4px)" }} />
+                    {/* Header row */}
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 13px 0" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, background: "oklch(0% 0 0 / 0.5)", borderRadius: 999, padding: "3px 8px" }}>
+                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#ff4444", display: "inline-block" }} />
+                        <span style={{ fontFamily: mono, fontSize: 7, color: "#fff", fontWeight: 600, letterSpacing: "0.08em" }}>LIVE</span>
+                      </div>
+                      <div style={{ background: "oklch(72% 0.17 280 / 0.12)", border: "1px solid oklch(72% 0.17 280 / 0.25)", borderRadius: 999, padding: "3px 8px" }}>
+                        <span style={{ fontFamily: mono, fontSize: 7, fontWeight: 600, color: C.accent, letterSpacing: "0.08em" }}>AI · CLIP 3/5</span>
+                      </div>
+                    </div>
+                    {/* Play */}
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 48, height: 48, borderRadius: "50%", background: "oklch(100% 0 0 / 0.08)", border: "1px solid oklch(100% 0 0 / 0.14)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+                      </div>
+                    </div>
+                    {/* Caption with highlight */}
+                    <div style={{ position: "absolute", bottom: 30, left: 12, right: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, lineHeight: 1.5, display: "flex", flexWrap: "wrap", gap: 3 }}>
+                        {["AI", "isn't", "taking", "your", "job", "—"].map(w => (
+                          <span key={w} style={{ background: "oklch(0% 0 0 / 0.7)", borderRadius: 4, padding: "2px 6px", color: "#fff" }}>{w}</span>
+                        ))}
+                        <span style={{ background: "oklch(72% 0.17 280)", borderRadius: 4, padding: "2px 6px", color: "oklch(14% 0.015 250)", fontWeight: 800 }}>it's</span>
+                        <span style={{ background: "oklch(72% 0.17 280)", borderRadius: 4, padding: "2px 6px", color: "oklch(14% 0.015 250)", fontWeight: 800 }}>rewriting</span>
+                        <span style={{ background: "oklch(0% 0 0 / 0.7)", borderRadius: 4, padding: "2px 6px", color: "#fff" }}>it</span>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    <div style={{ position: "absolute", bottom: 14, left: 13, right: 13 }}>
                       <div style={{ height: 2, background: "oklch(100% 0 0 / 0.1)", borderRadius: 999, overflow: "hidden" }}>
                         <div style={{ width: "60%", height: "100%", background: C.accent, borderRadius: 999 }} />
                       </div>
                     </div>
-                    <div style={{ position: "absolute", top: 36, right: 10 }}>
-                      <div style={{ background: "oklch(72% 0.17 280 / 0.1)", border: "1px solid oklch(72% 0.17 280 / 0.2)", borderRadius: 7, padding: "3px 8px" }}>
-                        <span style={{ fontFamily: mono, fontSize: 7, fontWeight: 600, color: C.accent, letterSpacing: "0.1em", textTransform: "uppercase" }}>AI</span>
+                  </div>
+
+                  {/* Right card — dark navy, rotated right */}
+                  <div className="cf-card-r" style={{ position: "absolute", right: 0, top: 40, width: 178, height: 316, borderRadius: 20, overflow: "hidden", zIndex: 3,
+                    background: "linear-gradient(160deg, oklch(24% 0.05 240), oklch(17% 0.04 245), oklch(12% 0.02 250))",
+                    border: "1px solid oklch(100% 0 0 / 0.09)", boxShadow: "0 24px 48px oklch(0% 0 0 / 0.5)" }}>
+                    <div style={{ position: "absolute", inset: 0, opacity: 0.035, pointerEvents: "none",
+                      backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 4px)" }} />
+                    {/* AI badge */}
+                    <div style={{ position: "absolute", top: 12, right: 12, background: "oklch(72% 0.17 280 / 0.1)", border: "1px solid oklch(72% 0.17 280 / 0.2)", borderRadius: 7, padding: "3px 8px" }}>
+                      <span style={{ fontFamily: mono, fontSize: 7, fontWeight: 600, color: C.accent, letterSpacing: "0.1em" }}>AI</span>
+                    </div>
+                    {/* Play */}
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 40, height: 40, borderRadius: "50%", background: "oklch(100% 0 0 / 0.09)", border: "1px solid oklch(100% 0 0 / 0.13)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+                      </div>
+                    </div>
+                    {/* Caption */}
+                    <div style={{ position: "absolute", bottom: 28, left: 10, right: 10 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, lineHeight: 1.4, display: "flex", flexWrap: "wrap", gap: 3 }}>
+                        {["the", "rule"].map(w => (
+                          <span key={w} style={{ background: "oklch(0% 0 0 / 0.7)", borderRadius: 4, padding: "2px 5px", color: "#fff" }}>{w}</span>
+                        ))}
+                        <span style={{ background: "oklch(72% 0.17 280)", borderRadius: 4, padding: "2px 5px", color: "oklch(14% 0.015 250)", fontWeight: 800 }}>that</span>
+                        <span style={{ background: "oklch(0% 0 0 / 0.7)", borderRadius: 4, padding: "2px 5px", color: "#fff" }}>changed</span>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    <div style={{ position: "absolute", bottom: 14, left: 10, right: 10 }}>
+                      <div style={{ height: 2, background: "oklch(100% 0 0 / 0.1)", borderRadius: 999, overflow: "hidden" }}>
+                        <div style={{ width: "75%", height: "100%", background: "oklch(100% 0 0 / 0.45)", borderRadius: 999 }} />
                       </div>
                     </div>
                   </div>
-                  {/* Stats below */}
-                  <div style={{ position: "absolute", bottom: -4, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 28 }}>
-                    {[["5", "clips"], ["1", "voice"], ["9:16", "format"]].map(([val, label]) => (
-                      <div key={label} style={{ textAlign: "center" }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>{val}</p>
-                        <p style={{ fontFamily: mono, fontSize: 9, color: C.fgDim, textTransform: "uppercase", letterSpacing: "0.08em", margin: "2px 0 0" }}>{label}</p>
-                      </div>
-                    ))}
-                  </div>
+
                 </div>
               </div>
             </div>
