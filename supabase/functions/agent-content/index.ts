@@ -99,7 +99,8 @@ Each caption must be:
 - 15–25 words maximum
 - A punchy hook or insight designed for vertical video (TikTok/Reels)
 - Present tense, active voice
-- No hashtags, no emojis
+- No hashtags
+- Add 1–2 relevant emojis naturally (at the start or end of the caption, not mid-sentence)
 
 ### Step 3: Write 1 Instagram caption
 - 150–200 words, conversational and engaging
