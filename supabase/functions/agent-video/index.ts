@@ -227,8 +227,9 @@ Save these as SCENE_1 … SCENE_5.
 ### 1a. Voiceover
 POST ${supabaseUrl}/functions/v1/generate-voiceover-and-upload
 Headers: Content-Type: application/json
-Body: { "script": "${captions.join(" ")}", "ai_gen_id": "${aiGenId}" }
+Body: { "script": "${captions.join(" ")}", "ai_gen_id": "${aiGenId}", "captions": ${JSON.stringify(captions)} }
 → Save response.audio_url as AUDIO_URL.
+→ Save response.caption_timings as CAPTION_TIMINGS (array of 5 frame numbers derived from real ElevenLabs character timestamps).
 ${klingPhase}${pexelsPhase}
 ${klingCheckpoint}
 
@@ -256,16 +257,7 @@ Confirm the PATCH returned 204. If it failed, write the error to debug_log and S
 
 ## PHASE 4 — Stitch with Remotion (only after Phase 3 PATCH is confirmed)
 
-First, compute captionTimings based on word counts so captions sync with the voiceover:
-- Count words in each of the 5 captions: wordCount_1 … wordCount_5
-- total_words = wordCount_1 + wordCount_2 + wordCount_3 + wordCount_4 + wordCount_5
-- captionTimings = [
-    0,
-    round(wordCount_1 / total_words * 670),
-    round((wordCount_1 + wordCount_2) / total_words * 670),
-    round((wordCount_1 + wordCount_2 + wordCount_3) / total_words * 670),
-    round((wordCount_1 + wordCount_2 + wordCount_3 + wordCount_4) / total_words * 670)
-  ]
+Use CAPTION_TIMINGS from the Phase 1a voiceover response — these are real frame offsets derived from ElevenLabs character-level timestamps and are already accurate. Do not recompute them.
 
 POST https://clipfrom-remotion-production.up.railway.app/render
 Headers: Content-Type: application/json
@@ -275,7 +267,7 @@ Body:
   "audioUrl": "AUDIO_URL",
   "captions": ${captionsJson},
   "captionStyle": "${captionStyle}",
-  "captionTimings": [CAPTION_TIMING_1, CAPTION_TIMING_2, CAPTION_TIMING_3, CAPTION_TIMING_4, CAPTION_TIMING_5]
+  "captionTimings": CAPTION_TIMINGS
 }
 
 On success, PATCH Supabase:
