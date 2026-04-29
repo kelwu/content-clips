@@ -12,6 +12,7 @@ import Studio from "./pages/Studio";
 import Features from "./pages/Features";
 import Login from "./pages/Login";
 import Privacy from "./pages/Privacy";
+import InstagramCallback from "./pages/InstagramCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/features" element={<Features />} />
             <Route path="/login" element={<Login />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
             <Route path="/editor" element={<ProtectedRoute><CaptionEditor /></ProtectedRoute>} />
             <Route path="/results/:projectId" element={<ProtectedRoute><VideoResults /></ProtectedRoute>} />
             <Route path="/studio/:projectId" element={<ProtectedRoute><Studio /></ProtectedRoute>} />

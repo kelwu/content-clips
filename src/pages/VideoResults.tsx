@@ -41,6 +41,9 @@ export default function VideoResults() {
   const [editingOutro, setEditingOutro] = useState(false);
   const [savingOutro, setSavingOutro] = useState(false);
   const [outroSaved, setOutroSaved] = useState(false);
+  const [igConnected, setIgConnected] = useState<boolean | null>(null);
+  const [igUsername, setIgUsername] = useState("");
+  const [connectingIg, setConnectingIg] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const triggeredRef = useRef(false);
 
@@ -196,6 +199,7 @@ export default function VideoResults() {
           body: JSON.stringify({
             video_url: result.stitched_video_url,
             caption: instagramCaption,
+            user_id: user?.id,
           }),
         }
       );
@@ -215,9 +219,44 @@ export default function VideoResults() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("user_profiles").select("caption_outro").eq("id", user.id).maybeSingle()
-      .then(({ data }) => { if (data?.caption_outro) setCaptionOutro(data.caption_outro); });
+    supabase
+      .from("user_profiles")
+      .select("caption_outro, instagram_account_id, instagram_username")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.caption_outro) setCaptionOutro(data.caption_outro);
+        setIgConnected(!!data?.instagram_account_id);
+        if (data?.instagram_username) setIgUsername(data.instagram_username);
+      });
   }, [user?.id]);
+
+  const handleConnectInstagram = async () => {
+    if (!session) return;
+    setConnectingIg(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/instagram-oauth-start`,
+        {
+          headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+        }
+      );
+      const data = await res.json();
+      if (data.url) {
+        sessionStorage.setItem("ig_oauth_return_to", window.location.pathname + window.location.search);
+        window.location.href = data.url;
+      } else {
+        toast.error("Could not start Instagram connection");
+        setConnectingIg(false);
+      }
+    } catch {
+      toast.error("Could not reach server");
+      setConnectingIg(false);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(instagramCaption);
@@ -430,27 +469,45 @@ export default function VideoResults() {
           <button className="px-4 py-1.5 border border-gray-700 hover:border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-colors">
             Refine Script
           </button>
-          <button
-            onClick={handlePostToInstagram}
-            disabled={posting || posted}
-            className="flex items-center gap-2 px-4 py-1.5 border border-pink-500/40 hover:border-pink-500/70 bg-pink-500/10 hover:bg-pink-500/20 rounded-lg text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {posting ? (
-              <><Spinner size={13} /> Posting…</>
-            ) : posted ? (
-              <>
-                <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Posted!
-              </>
-            ) : (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
-                </svg>
-                Post to Instagram
-              </>
-            )}
-          </button>
+          {igConnected === false ? (
+            <button
+              onClick={handleConnectInstagram}
+              disabled={connectingIg}
+              className="flex items-center gap-2 px-4 py-1.5 border border-pink-500/40 hover:border-pink-500/70 bg-pink-500/10 hover:bg-pink-500/20 rounded-lg text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {connectingIg ? <><Spinner size={13} /> Connecting…</> : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                  Connect Instagram
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handlePostToInstagram}
+              disabled={posting || posted || igConnected === null}
+              className="flex items-center gap-2 px-4 py-1.5 border border-pink-500/40 hover:border-pink-500/70 bg-pink-500/10 hover:bg-pink-500/20 rounded-lg text-sm font-semibold text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              title={igUsername ? `Connected as @${igUsername}` : undefined}
+            >
+              {posting ? (
+                <><Spinner size={13} /> Posting…</>
+              ) : posted ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Posted!
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                  {igUsername ? `Post as @${igUsername}` : "Post to Instagram"}
+                </>
+              )}
+            </button>
+          )}
           <button
             onClick={() => navigate(`/studio/${projectId}`, {
               state: { result, captionStyle, transitionStyle, captions: displayCaptions, content },

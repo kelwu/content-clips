@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { video_url, caption } = await req.json();
+    const { video_url, caption, user_id } = await req.json();
 
     if (!video_url) {
       return new Response(
@@ -18,8 +20,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    const accessToken = Deno.env.get("INSTAGRAM_ACCESS_TOKEN")!;
-    const accountId = Deno.env.get("INSTAGRAM_ACCOUNT_ID")!;
+    let accessToken: string;
+    let accountId: string;
+
+    // Use per-user token if user_id provided, otherwise fall back to env vars
+    if (user_id) {
+      const adminSupabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { data: profile } = await adminSupabase
+        .from("user_profiles")
+        .select("instagram_access_token, instagram_account_id")
+        .eq("id", user_id)
+        .single();
+
+      if (!profile?.instagram_access_token || !profile?.instagram_account_id) {
+        return new Response(
+          JSON.stringify({ error: "Instagram account not connected. Please connect your Instagram account first." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      accessToken = profile.instagram_access_token;
+      accountId = profile.instagram_account_id;
+    } else {
+      accessToken = Deno.env.get("INSTAGRAM_ACCESS_TOKEN")!;
+      accountId = Deno.env.get("INSTAGRAM_ACCOUNT_ID")!;
+    }
 
     // Step 1 — Create media container
     const createRes = await fetch(
