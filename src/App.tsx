@@ -12,6 +12,7 @@ import Studio from "./pages/Studio";
 import Features from "./pages/Features";
 import Login from "./pages/Login";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import Dashboard from "./pages/Dashboard";
 import InstagramCallback from "./pages/InstagramCallback";
 import NotFound from "./pages/NotFound";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/features" element={<Features />} />
             <Route path="/login" element={<Login />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
             <Route path="/editor" element={<ProtectedRoute><CaptionEditor /></ProtectedRoute>} />

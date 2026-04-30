@@ -245,7 +245,8 @@ export default function Privacy() {
         </Section>
 
         <p style={{ textAlign: "center", fontSize: 13, color: C.fgDim, marginTop: 48, paddingTop: 24, borderTop: `1px solid ${C.strokeSoft}` }}>
-          This Privacy Policy was last reviewed and updated on April 28, 2026.
+          This Privacy Policy was last reviewed and updated on April 28, 2026.{" "}
+          <a href="/terms" style={{ color: C.accent, textDecoration: "none" }}>Terms of Service →</a>
         </p>
       </div>
     </div>
