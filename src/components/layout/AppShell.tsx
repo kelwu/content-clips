@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -42,6 +43,7 @@ export default function AppShell({ children, activePage }: AppShellProps) {
   const { user, signOut } = useAuth();
   const [credits, setCredits] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -158,6 +160,16 @@ export default function AppShell({ children, activePage }: AppShellProps) {
                   {credits === 0 && (
                     <p className="text-[10px] text-red-400 mt-1.5">Upgrade to generate more videos</p>
                   )}
+                  <button
+                    onClick={() => setShowUpgrade(true)}
+                    className={`w-full mt-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors ${
+                      credits === 0
+                        ? "bg-violet-500 hover:bg-violet-600 text-white"
+                        : "bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    Upgrade
+                  </button>
                 </div>
               )}
               {isAdmin && (
@@ -202,6 +214,8 @@ export default function AppShell({ children, activePage }: AppShellProps) {
       <main className="flex-1 flex flex-col overflow-hidden">
         {children}
       </main>
+
+      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
     </div>
   );
 }
