@@ -318,7 +318,7 @@ const ArticleInput = () => {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {user ? (
-                <button onClick={() => navigate("/editor")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0 }}>Dashboard</button>
+                <button onClick={() => navigate("/dashboard")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0 }}>Dashboard</button>
               ) : (
                 <button onClick={() => navigate("/login")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0, transition: "color 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.color = C.fg)} onMouseLeave={e => (e.currentTarget.style.color = C.fgMuted)}>Login</button>

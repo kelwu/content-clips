@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface AppShellProps {
   children: React.ReactNode;
+  activePage?: string;
 }
 
 const navItems = [
@@ -34,7 +35,7 @@ const navItems = [
   },
 ];
 
-export default function AppShell({ children }: AppShellProps) {
+export default function AppShell({ children, activePage }: AppShellProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
@@ -82,15 +83,35 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Nav items */}
         <nav className="flex-1 px-3 py-1 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-35 cursor-not-allowed select-none"
-            >
-              <span className="text-gray-500">{item.icon}</span>
-              <span className="text-sm text-gray-400">{item.label}</span>
-            </div>
-          ))}
+          {navItems.map((item) => {
+            const isLibrary = item.label === "Library";
+            const isActive = activePage === item.label;
+            if (isLibrary) {
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => navigate("/dashboard")}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                    isActive
+                      ? "bg-violet-500/10 border border-violet-500/20"
+                      : "hover:bg-gray-800"
+                  }`}
+                >
+                  <span className={isActive ? "text-violet-400" : "text-gray-500"}>{item.icon}</span>
+                  <span className={`text-sm ${isActive ? "text-violet-400 font-medium" : "text-gray-400"}`}>{item.label}</span>
+                </button>
+              );
+            }
+            return (
+              <div
+                key={item.label}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-35 cursor-not-allowed select-none"
+              >
+                <span className="text-gray-500">{item.icon}</span>
+                <span className="text-sm text-gray-400">{item.label}</span>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Bottom links */}
