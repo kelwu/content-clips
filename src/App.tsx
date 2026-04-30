@@ -16,6 +16,7 @@ import Terms from "./pages/Terms";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import UpgradeSuccess from "./pages/UpgradeSuccess";
+import UpdatePassword from "./pages/UpdatePassword";
 import InstagramCallback from "./pages/InstagramCallback";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/studio/:projectId" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/upgrade/success" element={<ProtectedRoute><UpgradeSuccess /></ProtectedRoute>} />
+            <Route path="/update-password" element={<UpdatePassword />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

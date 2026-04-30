@@ -35,7 +35,7 @@ export default function Login() {
       }
     } else if (mode === "reset") {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: `${window.location.origin}/update-password`,
       });
       if (error) { toast.error(error.message); } else { setResetSent(true); }
     } else if (mode === "signup") {
