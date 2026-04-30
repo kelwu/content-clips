@@ -1,0 +1,236 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import AppShell from "@/components/layout/AppShell";
+
+interface Profile {
+  instagram_account_id: string | null;
+  instagram_username: string | null;
+  instagram_token_expires_at: string | null;
+  caption_outro: string | null;
+}
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <div className="border-b border-gray-800 pb-8 mb-8 last:border-0 last:mb-0 last:pb-0">
+      <div className="mb-5">
+        <h2 className="text-sm font-semibold text-white">{title}</h2>
+        {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export default function Settings() {
+  const navigate = useNavigate();
+  const { user, session, signOut } = useAuth();
+
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [outro, setOutro] = useState("");
+  const [editingOutro, setEditingOutro] = useState(false);
+  const [savingOutro, setSavingOutro] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [connectingIg, setConnectingIg] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("user_profiles")
+      .select("instagram_account_id, instagram_username, instagram_token_expires_at, caption_outro")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setProfile(data ?? { instagram_account_id: null, instagram_username: null, instagram_token_expires_at: null, caption_outro: null });
+        setOutro(data?.caption_outro ?? "");
+      });
+  }, [user?.id]);
+
+  const handleSaveOutro = async () => {
+    if (!user) return;
+    setSavingOutro(true);
+    const { error } = await supabase
+      .from("user_profiles")
+      .upsert({ id: user.id, caption_outro: outro, updated_at: new Date().toISOString() });
+    setSavingOutro(false);
+    if (error) { toast.error("Failed to save"); return; }
+    setProfile(p => p ? { ...p, caption_outro: outro } : p);
+    setEditingOutro(false);
+    toast.success("Saved");
+  };
+
+  const handleDisconnectInstagram = async () => {
+    if (!user) return;
+    setDisconnecting(true);
+    const { error } = await supabase
+      .from("user_profiles")
+      .upsert({
+        id: user.id,
+        instagram_account_id: null,
+        instagram_access_token: null,
+        instagram_token_expires_at: null,
+        instagram_username: null,
+        updated_at: new Date().toISOString(),
+      });
+    setDisconnecting(false);
+    if (error) { toast.error("Failed to disconnect"); return; }
+    setProfile(p => p ? { ...p, instagram_account_id: null, instagram_username: null, instagram_token_expires_at: null } : p);
+    toast.success("Instagram disconnected");
+  };
+
+  const handleConnectInstagram = async () => {
+    if (!session) return;
+    setConnectingIg(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/instagram-oauth-start`,
+        { headers: { "Authorization": `Bearer ${session.access_token}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY } }
+      );
+      const data = await res.json();
+      if (data.url) {
+        sessionStorage.setItem("ig_oauth_return_to", "/settings");
+        window.location.href = data.url;
+      } else {
+        toast.error("Could not start Instagram connection");
+        setConnectingIg(false);
+      }
+    } catch {
+      toast.error("Could not reach server");
+      setConnectingIg(false);
+    }
+  };
+
+  const tokenExpiresAt = profile?.instagram_token_expires_at
+    ? new Date(profile.instagram_token_expires_at)
+    : null;
+  const daysUntilExpiry = tokenExpiresAt
+    ? Math.ceil((tokenExpiresAt.getTime() - Date.now()) / 86400000)
+    : null;
+
+  return (
+    <AppShell activePage="Settings">
+      {/* Top bar */}
+      <div className="flex items-center px-6 py-3 border-b border-gray-800 bg-[#0d0d0d] flex-shrink-0">
+        <span className="text-sm font-medium text-white">Settings</span>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-xl mx-auto">
+
+          {/* Account */}
+          <Section title="Account" description="Your ClipFrom account details.">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Email</p>
+                  <p className="text-sm text-white mt-0.5">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={async () => { await signOut(); navigate("/login"); }}
+              className="mt-3 text-xs text-gray-500 hover:text-red-400 transition-colors"
+            >
+              Sign out
+            </button>
+          </Section>
+
+          {/* Instagram */}
+          <Section title="Instagram" description="Connect your Instagram Business or Creator account to post Reels directly from ClipFrom.">
+            {profile === null ? (
+              <div className="h-16 bg-gray-900 border border-gray-800 rounded-xl animate-pulse" />
+            ) : profile.instagram_account_id ? (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-pink-500/10 border border-pink-500/20 rounded-lg flex items-center justify-center">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-pink-400">
+                        <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">
+                        {profile.instagram_username ? `@${profile.instagram_username}` : "Connected"}
+                      </p>
+                      {daysUntilExpiry !== null && (
+                        <p className={`text-xs mt-0.5 ${daysUntilExpiry < 7 ? "text-amber-400" : "text-gray-500"}`}>
+                          Token expires in {daysUntilExpiry} day{daysUntilExpiry !== 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleDisconnectInstagram}
+                    disabled={disconnecting}
+                    className="text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                  >
+                    {disconnecting ? "Disconnecting…" : "Disconnect"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleConnectInstagram}
+                disabled={connectingIg}
+                className="flex items-center gap-2.5 px-4 py-3 bg-gray-900 border border-gray-800 hover:border-pink-500/40 rounded-xl text-sm font-semibold text-gray-300 hover:text-pink-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+                </svg>
+                {connectingIg ? "Connecting…" : "Connect Instagram Account"}
+              </button>
+            )}
+          </Section>
+
+          {/* Caption Outro */}
+          <Section title="Caption Outro" description="Text appended to the end of every Instagram caption you generate.">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+              {editingOutro ? (
+                <div className="p-4 space-y-3">
+                  <textarea
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 resize-none focus:outline-none focus:border-violet-500 leading-relaxed"
+                    rows={4}
+                    placeholder={'e.g. "Comment LINK and I\'ll DM you the full guide 👇"'}
+                    value={outro}
+                    onChange={(e) => setOutro(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setEditingOutro(false); setOutro(profile?.caption_outro ?? ""); }}
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveOutro}
+                      disabled={savingOutro}
+                      className="px-3 py-1.5 bg-violet-500 hover:bg-violet-600 disabled:opacity-60 rounded-lg text-xs font-semibold transition-colors"
+                    >
+                      {savingOutro ? "Saving…" : "Save"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between p-4 gap-4">
+                  <p className="text-xs text-gray-400 leading-relaxed flex-1">
+                    {profile?.caption_outro || <span className="text-gray-600 italic">No outro set.</span>}
+                  </p>
+                  <button
+                    onClick={() => setEditingOutro(true)}
+                    className="text-xs text-gray-500 hover:text-white transition-colors flex-shrink-0"
+                  >
+                    {profile?.caption_outro ? "Edit" : "Add"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </Section>
+
+        </div>
+      </div>
+    </AppShell>
+  );
+}

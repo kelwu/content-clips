@@ -122,6 +122,19 @@ export default function AppShell({ children, activePage }: AppShellProps) {
               <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
             </div>
           )}
+          <button
+            onClick={() => navigate("/settings")}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+              activePage === "Settings"
+                ? "bg-violet-500/10 border border-violet-500/20"
+                : "hover:bg-gray-800"
+            }`}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={activePage === "Settings" ? "text-violet-400" : "text-gray-500"}>
+              <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M12 2v2M4.93 4.93l1.41 1.41M2 12h2M4.93 19.07l1.41-1.41M12 20v2M19.07 19.07l-1.41-1.41M20 12h2"/>
+            </svg>
+            <span className={`text-sm ${activePage === "Settings" ? "text-violet-400 font-medium" : "text-gray-400"}`}>Settings</span>
+          </button>
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed select-none">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="text-gray-500">
               <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>

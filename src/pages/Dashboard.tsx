@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import AppShell from "@/components/layout/AppShell";
+import OnboardingModal from "@/components/OnboardingModal";
 
 interface Project {
   id: string;
@@ -106,9 +108,10 @@ function sourceLabel(url: string | null) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -127,11 +130,55 @@ export default function Dashboard() {
       });
   }, [user?.id]);
 
+  const handleRetry = async (projectId: string) => {
+    if (!user || !session) return;
+    setRetrying(projectId);
+    try {
+      // Reset the generation status so the agent can re-run
+      await supabase
+        .from("ai_generations")
+        .update({
+          status: "captions_ready",
+          debug_log: null,
+          stitched_video_url: null,
+          video_url_1: null, video_url_2: null, video_url_3: null,
+          video_url_4: null, video_url_5: null,
+          kling_task_ids: null,
+        })
+        .eq("project_id", projectId);
+
+      // Re-trigger the video agent with default style settings
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-video`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          project_id: projectId,
+          user_email: user.email,
+          captionStyle: "pill",
+          transitionStyle: "cut",
+          videoSource: "stock",
+        }),
+      });
+
+      toast.success("Retrying video generation…");
+      navigate(`/results/${projectId}`);
+    } catch {
+      toast.error("Could not retry — please try again");
+      setRetrying(null);
+    }
+  };
+
   const complete = projects.filter(p => p.ai_generations?.status === "complete");
-  const inProgress = projects.filter(p => p.ai_generations?.status !== "complete");
+  const inProgress = projects.filter(p => p.ai_generations?.status !== "complete" && !p.ai_generations?.status?.includes("error") && p.ai_generations?.status !== "kling_all_failed");
+  const failed = projects.filter(p => p.ai_generations?.status?.includes("error") || p.ai_generations?.status === "kling_all_failed");
 
   return (
     <AppShell activePage="Library">
+      <OnboardingModal />
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-800 bg-[#0d0d0d] flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -185,6 +232,24 @@ export default function Dashboard() {
               </section>
             )}
 
+            {/* Failed */}
+            {failed.length > 0 && (
+              <section>
+                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Failed</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {failed.map(p => (
+                    <ProjectCard
+                      key={p.id}
+                      project={p}
+                      onClick={() => navigate(`/results/${p.id}`)}
+                      onRetry={() => handleRetry(p.id)}
+                      retrying={retrying === p.id}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Completed */}
             {complete.length > 0 && (
               <section>
@@ -203,7 +268,7 @@ export default function Dashboard() {
   );
 }
 
-function ProjectCard({ project, onClick }: { project: Project; onClick: () => void }) {
+function ProjectCard({ project, onClick, onRetry, retrying }: { project: Project; onClick: () => void; onRetry?: () => void; retrying?: boolean }) {
   const gen = project.ai_generations;
   const caption = Array.isArray(gen?.caption_options) ? gen.caption_options[0] : null;
 
@@ -239,6 +304,15 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           <span className="text-[10px] text-gray-600 truncate max-w-[80px]">{sourceLabel(project.article_url)}</span>
           <span className="text-[10px] text-gray-600 flex-shrink-0">{timeAgo(project.created_at)}</span>
         </div>
+        {onRetry && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onRetry(); }}
+            disabled={retrying}
+            className="w-full mt-1 py-1.5 bg-gray-800 hover:bg-violet-500/20 hover:text-violet-400 border border-gray-700 hover:border-violet-500/40 rounded-lg text-[10px] font-semibold text-gray-400 transition-colors disabled:opacity-50"
+          >
+            {retrying ? "Retrying…" : "↺ Retry"}
+          </button>
+        )}
       </div>
     </button>
   );
