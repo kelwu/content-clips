@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -8,18 +8,32 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/";
 
-  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset" | "update-password">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [signedUp, setSignedUp] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
+  // Detect when Supabase redirects back after a password reset email click
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("update-password");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    if (mode === "reset") {
+    if (mode === "update-password") {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) { toast.error(error.message); } else {
+        toast.success("Password updated — signing you in…");
+        navigate(returnTo, { replace: true });
+      }
+    } else if (mode === "reset") {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/login`,
       });
@@ -49,7 +63,34 @@ export default function Login() {
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          {resetSent ? (
+          {mode === "update-password" ? (
+            <>
+              <h1 className="text-xl font-bold text-white mb-1">Set new password</h1>
+              <p className="text-sm text-gray-500 mb-6">Choose a new password for your account.</p>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1.5">New password</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors"
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 bg-violet-500 hover:bg-violet-600 disabled:opacity-60 rounded-lg text-sm font-semibold text-white transition-colors"
+                >
+                  {loading ? "Updating…" : "Update password"}
+                </button>
+              </form>
+            </>
+          ) : resetSent ? (
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-4">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400">
