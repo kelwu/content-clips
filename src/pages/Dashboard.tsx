@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,6 +51,9 @@ function StatusBadge({ status }: { status: string | null }) {
 }
 
 function VideoThumbnail({ url }: { url: string | null }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [visible, setVisible] = useState(false);
+
   if (!url) {
     return (
       <div className="w-full h-full bg-gray-800 flex items-center justify-center">
@@ -60,15 +63,23 @@ function VideoThumbnail({ url }: { url: string | null }) {
       </div>
     );
   }
+
   return (
-    <video
-      src={url}
-      className="w-full h-full object-cover"
-      muted
-      playsInline
-      preload="metadata"
-      onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 1; }}
-    />
+    <div className="w-full h-full bg-gray-800">
+      <video
+        ref={ref}
+        src={url}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        muted
+        playsInline
+        preload="auto"
+        onLoadedMetadata={() => {
+          if (ref.current) ref.current.currentTime = 0.5;
+        }}
+        onSeeked={() => setVisible(true)}
+        onError={() => setVisible(false)}
+      />
+    </div>
   );
 }
 
