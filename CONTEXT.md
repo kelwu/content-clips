@@ -1,7 +1,7 @@
 # ClipFrom — App Context & Feature Overview
 
-> Last updated: 2026-04-28  
-> Purpose: Privacy policy drafting + Instagram Graph API access application  
+> Last updated: 2026-04-30
+> Purpose: Brainstorming and product context for Claude Chat sessions.
 > Feed this file to a fresh Claude session for full working context.
 
 ---
@@ -11,32 +11,65 @@
 ClipFrom is an AI-powered article-to-short-form-video generator. Users paste an article URL or raw text, and ClipFrom automatically produces five ~5-second vertical video clips (9:16) stitched into a single ~25-second MP4 ready to post on Instagram Reels, TikTok, or YouTube Shorts — with no manual editing required.
 
 Each output includes:
-- AI-generated voiceover (ElevenLabs TTS)
+- AI-generated voiceover (ElevenLabs TTS, synced to captions via real character-level timestamps)
 - B-roll video footage (AI-generated via Kling AI, stock from Pexels, or a mix)
 - Synchronized captions and transitions
 - A ready-to-post Instagram caption with hashtags
 
-Users can also publish the final video directly to a connected Instagram Business or Creator account via the Instagram Graph API.
+Users can also publish the final video directly to their connected Instagram Business or Creator account via the Instagram Graph API (per-user OAuth).
 
 **Target users:** Content creators, marketers, journalists, and small business owners repurposing written content as short-form video.
+
+**Domain:** clipfrom.ai | **GitHub:** kelwu/clipfrom | **Stack:** React + Supabase + Vercel
+
+---
+
+## Monetization
+
+### Pricing Tiers
+| Plan | Price | Credits | Cost/video |
+|---|---|---|---|
+| Free | $0 | 2 (on signup, one-time) | — |
+| Starter | $12/mo | 5 | $2.40 |
+| Pro | $29/mo | 20 | $1.45 |
+| Creator | $59/mo | 50 | $1.18 |
+
+### Cost Per Generation (estimated)
+- Kling AI (5 clips): ~$1.40
+- ElevenLabs TTS: ~$0.05–0.10
+- Remotion (Railway): ~$0.10–0.20
+- Claude API (Managed Agents): ~$0.10–0.20
+- **Total: ~$1.65–1.90 per generation**
+
+Note: Pro tier ($29/20 gen) has thin margin — $35 in costs vs $29 revenue at full usage. Watch this.
+
+### Infrastructure Baseline
+~$30–60/month fixed costs before any user generates a video. 2–3 Starter subscribers covers it.
 
 ---
 
 ## User-Facing Flow
 
-1. **Landing page (`/`)** — User pastes an article URL or raw text and enters their email. Submitting triggers the content agent.
-2. **Login (`/login`)** — Email/password authentication or signup via Supabase Auth. Required before accessing the pipeline.
-3. **Caption Editor (`/editor`)** — User reviews and edits 5 AI-generated captions, chooses caption style (pill / bold / lower-third / none), transition style (cut / fade / dissolve / wipe), and video source (AI / stock / mix).
-4. **Video Results (`/results/:projectId`)** — Live status tracker while the pipeline runs. On completion: MP4 preview player, editable Instagram caption, download button, and Instagram post button.
-5. **Studio (`/studio/:projectId`)** — Video composition preview using Remotion.
+1. **Landing page (`/`)** — Paste an article URL or text. Requires login. Shows credit balance.
+2. **Login (`/login`)** — Email/password auth + forgot password flow.
+3. **Caption Editor (`/editor`)** — Review/edit 5 AI-generated captions. Choose caption style (pill / bold / lower-third / none), transition style (cut / fade / dissolve / wipe), and video source (AI / stock / mix).
+4. **Video Results (`/results/:projectId`)** — Live pipeline status tracker. On completion: MP4 preview, editable Instagram caption, download button, and "Post to Instagram" button.
+5. **Studio (`/studio/:projectId`)** — Remotion-powered video composition preview.
+6. **Dashboard (`/dashboard`)** — Video library: all past projects grouped as Generating / Failed / Ready. Retry button on failed videos. Thumbnail previews.
+7. **Settings (`/settings`)** — Account info, Instagram connect/disconnect (with token expiry warning), caption outro editor.
+8. **Upgrade (`/upgrade/success`)** — Post-Stripe-checkout success page, polls for credit delivery.
+9. **Privacy Policy (`/privacy`)** — Required for Instagram Graph API review.
+10. **Terms of Service (`/terms`)** — Full TOS.
+11. **Instagram OAuth callback (`/auth/instagram/callback`)** — Handles redirect after user connects Instagram account.
+12. **Password reset (`/update-password`)** — Set new password after clicking reset email link.
 
-Protected routes (`/editor`, `/results`, `/studio`) require a valid Supabase Auth session.
+Protected routes require a valid Supabase Auth session.
 
 ---
 
-## Architecture Overview
+## Architecture
 
-ClipFrom uses a **fire-and-forget agent pattern**:
+ClipFrom uses a **fire-and-forget Managed Agent pattern**:
 
 ```
 User action → Supabase Edge Function → spawns Anthropic Managed Agent
@@ -48,141 +81,153 @@ User action → Supabase Edge Function → spawns Anthropic Managed Agent
 Frontend polls Supabase every 3s ────────┘
 ```
 
-The Edge Function returns immediately after spawning the agent, avoiding timeout issues for long-running video generation. The frontend polls the `ai_generations` table for status changes.
+The Edge Function returns immediately. The frontend polls `ai_generations.status` for changes.
 
 ---
 
 ## Pipeline Details
 
 ### Stage 1: Content Agent (`agent-content`)
-
-**Trigger:** Form submission on landing page  
-**Input:** `{ content, type: "url"|"text", project_id, user_email }`
-
-- Spawns an Anthropic Managed Agent (Claude Sonnet 4.6) with web fetch toolset
-- Fetches and parses article content if URL provided
-- Generates 5 short-form caption hooks (15–25 words each)
-- Generates 1 Instagram caption (150–200 words with hashtags)
+- Spawns Claude Sonnet 4.6 Managed Agent
+- Fetches and parses article (if URL)
+- Generates 5 short-form caption hooks + 1 Instagram caption
 - Writes to `ai_generations`: `caption_options`, `description`, status `captions_ready`
 
 ### Stage 2: Video Agent (`agent-video`)
+- **Credit gate**: verifies JWT, checks `credits_remaining` in `user_profiles`, decrements before pipeline starts. Returns 402 if no credits. Admins (`is_admin=true`) bypass entirely.
 
-**Trigger:** User clicks "Generate" in Caption Editor  
-**Input:** `{ project_id, user_email, captionStyle, transitionStyle, videoSource }`
-
-Phase-by-phase execution:
-
-- **Phase 0** — Generate cinematic scene descriptions (one per caption). Rules: filmable physical scenes, no legible text, vertical 9:16 framing.
+Phase-by-phase:
+- **Phase 0** — Generate cinematic scene descriptions (one per caption)
 - **Phase 1 (parallel)**
-  - **1a** — POST to `generate-voiceover-and-upload` → ElevenLabs TTS → MP3 stored in Supabase Storage → returns `AUDIO_URL`
-  - **1b–1f** — Video clips based on `videoSource`:
-    - `"ai"`: Submit 5 tasks to Kling AI (`kling-3.0/video`, 5s, 9:16 portrait)
-    - `"stock"`: Pexels search by caption keywords → highest-resolution portrait MP4
-    - `"mix"`: Kling for clips 1, 3, 5 — Pexels for clips 2, 4
-- **Phase 2** — Poll Kling AI every 15s until `state === "completed"` (skipped for stock-only)
-- **Phase 3** — PATCH `ai_generations` with `video_url_1` through `video_url_5`, status `videos_ready`
-- **Phase 4** — POST to Remotion renderer with clips, audio, captions, caption style, and word-count-proportional timings → returns stitched MP4 URL → PATCH Supabase: `stitched_video_url`, status `complete`
-- **Phase 5** — Send video-ready email via Resend (non-blocking)
+  - **1a** — POST to `generate-voiceover-and-upload` → ElevenLabs `/with-timestamps` endpoint → MP3 uploaded to Supabase Storage → returns `audio_url` + `caption_timings` (real frame offsets from character-level timestamp data)
+  - **1b–1f** — Video clips via Kling AI (AI), Pexels (stock), or mix
+- **Phase 2** — Poll Kling AI every 15s until clips are ready
+- **Phase 3** — PATCH `ai_generations` with clip URLs, status `videos_ready`
+- **Phase 4** — POST to Remotion renderer with clips, audio, captions, and real `captionTimings` → returns stitched MP4 URL → PATCH status `complete`
+- **Phase 5** — Send video-ready email via Resend
 
 ### Stage 3: Instagram Publishing (`post-to-instagram`)
+- Looks up user's `instagram_access_token` and `instagram_account_id` from `user_profiles`
+- Creates media container → polls until FINISHED → publishes Reel
 
-**Trigger:** User clicks "Post to Instagram" on Results page  
-**Flow using Instagram Graph API v22.0:**
-1. `POST /{ig-user-id}/media` — Create media container with video URL and caption
-2. `GET /{ig-container-id}?fields=status_code` — Poll until container is `FINISHED`
-3. `POST /{ig-user-id}/media_publish` — Publish the Reel
+### Stage 4: Stripe Payments
+- `stripe-checkout` Edge Function: verifies JWT, creates/reuses Stripe customer, creates subscription Checkout session, returns hosted URL
+- `stripe-webhook` Edge Function: handles `checkout.session.completed` (adds credits, saves customer/subscription IDs) and `invoice.payment_succeeded` (monthly renewals, skips first invoice to avoid double-credit)
+- Plans stored in Stripe with `credits` in subscription metadata for webhook to read
 
-### Pipeline Status State Machine
-
-```
-processing → captions_ready → generating_videos → kling_tasks_created
-  → kling_tasks_done → videos_ready → complete
-
-Error states: kling_create_error, kling_all_failed, remotion_error
-```
+### Caption Timing (important implementation detail)
+- ElevenLabs `/with-timestamps` returns character-level start times for the full script
+- Caption boundaries are located at known character offsets in `captions.join(" ")`
+- Frame offset = `Math.round(startTimeSeconds × 30)`
+- These real frame numbers are passed directly to Remotion
 
 ---
 
-## Authentication & User Accounts
+## Credit System
 
-- **Supabase Auth** — email/password signup and login
-- **AuthContext** — React context providing session state across the app
-- **ProtectedRoute** — HOC that redirects unauthenticated users to `/login`
-- JWT tokens used for all Supabase API calls
-- User email is used for pipeline notification delivery
+- New users: 2 free credits (auto-provisioned by Supabase DB trigger on `auth.users` insert)
+- `is_admin = true` in `user_profiles` → bypasses all credit checks, AppShell shows "∞ Admin"
+- Credit deducted at the start of `agent-video` before pipeline runs
+- Failed generations do NOT automatically refund credits (manual refund via SQL for now)
+- Credit balance shown in AppShell sidebar with color-coded progress bar (violet → amber → red)
+- AppShell "Upgrade" button opens pricing modal
 
-**Not yet implemented:** OAuth (Google/GitHub), user dashboard/history, subscription tiers, payment integration, per-user Instagram OAuth (currently single connected account via server env vars).
+### Admin Account
+- Email: kelwu@gmail.com
+- `is_admin = true`, `credits_remaining = 999`
+- To reset manually: `UPDATE user_profiles SET credits_remaining = 999 WHERE id = (SELECT id FROM auth.users WHERE email = 'kelwu@gmail.com');`
 
 ---
 
-## External Services & APIs
+## Instagram OAuth Flow (per-user)
+
+1. User clicks "Connect Instagram" on VideoResults or Settings page
+2. Frontend calls `instagram-oauth-start` Edge Function → gets Facebook OAuth URL
+3. Browser redirects to Facebook login with scopes: `instagram_basic`, `instagram_content_publish`, `pages_read_engagement`, `pages_show_list`
+4. Facebook redirects to `clipfrom.ai/auth/instagram/callback?code=XXX&state={user_id}`
+5. `InstagramCallback` page calls `instagram-oauth-callback` Edge Function:
+   - Exchanges code → short-lived token → long-lived token (60 days)
+   - Finds Instagram Business Account via Facebook Pages
+   - Stores `instagram_account_id`, `instagram_access_token`, `instagram_token_expires_at`, `instagram_username` in `user_profiles`
+6. Settings page shows connected account with token expiry warning (amber if < 7 days)
+
+**Pending Instagram Graph API review** — app is built but not yet submitted to Meta for Live mode approval. Needs: screencast demo, app icon, switch to Live mode.
+
+---
+
+## Pages & Routes
+
+| Route | Auth | Description |
+|---|---|---|
+| `/` | Public | Landing page — article input |
+| `/login` | Public | Email/password login + signup + forgot password |
+| `/update-password` | Public | Set new password after reset email |
+| `/editor` | Protected | Caption review + style pickers |
+| `/results/:projectId` | Protected | Pipeline status + video preview |
+| `/studio/:projectId` | Protected | Remotion composition preview |
+| `/dashboard` | Protected | Video library with retry, thumbnails, status |
+| `/settings` | Protected | Account, Instagram, caption outro |
+| `/upgrade/success` | Protected | Post-Stripe checkout confirmation |
+| `/features` | Public | Marketing page |
+| `/privacy` | Public | Privacy policy |
+| `/terms` | Public | Terms of service |
+| `/auth/instagram/callback` | Public | Instagram OAuth callback handler |
+
+---
+
+## External Services
 
 | Service | Purpose | Data Sent |
 |---|---|---|
-| **Anthropic Claude Sonnet 4.6** | Caption + video script generation via Managed Agents | Article text or URL content |
-| **ElevenLabs** | Text-to-speech voiceover synthesis | Caption text |
-| **Kling AI** (`api.kie.ai`) | AI video clip generation | Scene description text, aspect ratio |
-| **Pexels** | Stock video footage search and retrieval | Caption keyword strings |
-| **Instagram Graph API v22.0** | Publishing Reels to Instagram business accounts | Video URL, caption text, access token |
-| **Supabase** | PostgreSQL database + file storage + Edge Functions runtime | User account data, project data, voiceover MP3s |
-| **Remotion** (self-hosted on Railway) | Video stitching and rendering | Clip URLs, audio URL, captions, timing metadata |
-| **Resend** | Transactional email notifications | User email address, video URL |
-
----
-
-## Data Collected & Stored
-
-### User Account Data
-- Email address (login + notifications)
-- Hashed password (managed entirely by Supabase Auth)
-- Internal user UUID
-
-### Project Data (per video)
-- Article URL or pasted article text
-- AI-generated captions (5 hooks + 1 Instagram caption)
-- User-edited final Instagram caption
-- Style preferences (caption style, transition style, video source)
-- Video clip URLs (from Kling AI or Pexels CDN)
-- Final stitched MP4 URL (hosted on Remotion renderer)
-- Pipeline status and error logs
-- Kling AI task IDs (for polling during generation)
-
-### Files Stored
-- Voiceover MP3 files in Supabase Storage (`voiceovers/voiceover-{ai_gen_id}.mp3`)
-
-### Instagram Data
-- Instagram user access token — stored as a server-side environment variable only; never stored in the database or exposed to the frontend
-- Instagram Business Account ID — stored as environment variable
-- No Instagram audience data, analytics, follower lists, DMs, or engagement metrics are collected or stored
+| **Anthropic Claude Sonnet 4.6** | Caption + video script generation (Managed Agents) | Article text/URL |
+| **ElevenLabs** | TTS voiceover with character-level timestamps | Caption text |
+| **Kling AI** | AI video clip generation (5s, 9:16) | Scene descriptions |
+| **Pexels** | Stock footage search | Caption keywords |
+| **Instagram Graph API v22.0** | Publishing Reels | Video URL, caption, access token |
+| **Supabase** | PostgreSQL + storage + Edge Functions + Auth | All user/project data |
+| **Remotion** (Railway) | Video stitching | Clip URLs, audio, captions, timings |
+| **Resend** | Email notifications | User email, video URL |
+| **Stripe** | Subscription payments | Email, plan selection |
 
 ---
 
 ## Database Schema
 
+### `user_profiles`
+| Column | Description |
+|---|---|
+| `id` | UUID → `auth.users` |
+| `caption_outro` | Persistent outro appended to every Instagram caption |
+| `instagram_account_id` | Connected IG Business Account ID |
+| `instagram_access_token` | Long-lived token (60 days) |
+| `instagram_token_expires_at` | Expiry timestamp |
+| `instagram_username` | e.g. "clipfrom_ai" |
+| `credits_remaining` | INT, default 2, decremented per generation |
+| `is_admin` | BOOLEAN, default false — bypasses credit gate |
+| `stripe_customer_id` | Stripe customer ID |
+| `stripe_subscription_id` | Active subscription ID |
+| `updated_at` | Last modified |
+
 ### `projects`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | uuid | Primary key |
-| `article_url` | text | Original article URL (null if text input) |
-| `status` | text | Overall project status |
-| `user_id` | uuid | FK → `auth.users` |
+| Column | Notes |
+|---|---|
+| `id` | UUID |
+| `user_id` | FK → `auth.users` |
+| `article_url` | Source URL (null if text input) |
+| `created_at` | Timestamp |
 
 ### `ai_generations`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | uuid | Primary key |
-| `project_id` | uuid | FK → `projects` |
-| `caption_options` | jsonb | Array of 5 short-form captions |
-| `description` | text | AI-generated Instagram caption |
-| `final_caption` | text | User-edited Instagram caption |
-| `video_url_1` – `video_url_5` | text | Individual clip URLs |
-| `stitched_video_url` | text | Final rendered MP4 URL |
-| `kling_task_ids` | jsonb | Kling AI task IDs |
-| `status` | text | Pipeline stage |
-| `debug_log` | text | Error details on failure |
-
-### Storage Buckets
-- `voiceovers/` — `voiceover-{ai_gen_id}.mp3`
+| Column | Notes |
+|---|---|
+| `caption_options` | jsonb — 5 short-form hooks |
+| `description` | AI-generated Instagram caption |
+| `final_caption` | User-edited caption |
+| `video_url_1–5` | Individual clip URLs |
+| `stitched_video_url` | Final MP4 URL |
+| `kling_task_ids` | jsonb — for polling |
+| `status` | Pipeline stage |
+| `debug_log` | Error details |
+| `caption_timings` | Real frame offsets from ElevenLabs timestamps |
 
 ---
 
@@ -191,64 +236,57 @@ Error states: kling_create_error, kling_all_failed, remotion_error
 | Layer | Technology |
 |---|---|
 | Frontend | React 18, React Router 6, TypeScript, Vite 7 |
-| Styling | Tailwind CSS 3 + shadcn/ui (Radix UI primitives) |
-| Data fetching | TanStack Query v5 |
-| Backend | Supabase Edge Functions (Deno runtime) |
-| Agent framework | Anthropic Managed Agents SDK (`anthropic.beta.agents`) |
+| Styling | Tailwind CSS (violet accent `#8b5cf6`) + shadcn/ui + inline oklch styles |
+| Backend | Supabase Edge Functions (Deno) |
+| AI Agents | Anthropic Managed Agents SDK (claude-sonnet-4-6) |
 | Auth | Supabase Auth (email/password) |
-| Video rendering | Remotion (self-hosted on Railway) |
-| Frontend hosting | Vercel |
-| Backend hosting | Supabase |
-| Domain | clipfrom.ai |
+| Payments | Stripe (subscription, hosted checkout) |
+| Video | Remotion renderer on Railway |
+| Hosting | Vercel (frontend, auto-deploys from GitHub main) |
+| Domain | clipfrom.ai (purchased via Porkbun) |
 
 ---
 
-## Key Files
+## What's Built ✅
 
-```
-src/
-  App.tsx                          — Route definitions + ProtectedRoute
-  contexts/
-    AuthContext.tsx                — Supabase Auth session management
-  pages/
-    ArticleInput.tsx               — Landing page + article form
-    CaptionEditor.tsx              — Caption review + style pickers
-    VideoResults.tsx               — Status tracker + video preview + download
-    Login.tsx                      — Email/password login + signup
-    Features.tsx                   — /features marketing page
-  lib/
-    supabase.ts                    — Supabase client (anon key)
-
-supabase/functions/
-  agent-content/index.ts           — Caption generation Managed Agent
-  agent-video/index.ts             — Video orchestration Managed Agent
-  post-to-instagram/index.ts       — Instagram Graph API publishing
-  generate-voiceover-and-upload/   — ElevenLabs TTS + Supabase storage
-  send-notification-email/         — Resend transactional email
-  _shared/
-    types.ts                       — Shared TypeScript interfaces
-    anthropic-client.ts            — Shared Anthropic SDK instance
-```
+- Article → video pipeline (URL or text input)
+- AI caption generation (Claude Managed Agents)
+- Caption editor with style/transition/source pickers
+- ElevenLabs voiceover with real timestamp-based caption sync
+- Kling AI video generation + Pexels stock footage
+- Remotion video stitching
+- Supabase Auth (email/password, protected routes, forgot password)
+- Per-user Instagram OAuth (connect account, post Reels, disconnect in Settings)
+- Caption outro (persistent per-user text)
+- Email notifications on video completion (Resend)
+- **Video dashboard/library** (`/dashboard`) — all past videos, status grouping, retry failed
+- **Settings page** (`/settings`) — account, Instagram, caption outro
+- **Onboarding modal** — shown once to new users with 0 projects
+- **Credit system** — free tier (2 credits), admin bypass, balance in sidebar, gate in agent-video
+- **Stripe payments** — Starter/Pro/Creator plans, hosted checkout, webhook for credit delivery
+- Privacy policy + Terms of Service pages
+- Purple/violet color scheme throughout
 
 ---
 
-## Instagram Graph API — Summary for App Review
+## What's NOT Built Yet (v2 Roadmap)
 
-**What ClipFrom uses the API for:**  
-Publishing Reels to a connected Instagram Business or Creator account on behalf of the user. This is the only use of the Instagram Graph API.
+- **Instagram Graph API approval** — app is ready but not yet submitted for Meta Live mode
+- **Instagram token refresh** — tokens expire after 60 days; needs cron job or refresh-on-use
+- **Credit refund on failed generation** — currently manual (SQL); no automatic refund
+- **Stripe customer portal** — users can't manage/cancel subscriptions from within the app
+- **Scheduling / TikTok / YouTube posting**
+- **Burned-in animated captions** (SubMagic-style) — currently captions are overlaid by Remotion
+- **Hook text overlay** for first 2–3 seconds
+- **Multi-language support**
+- **Remotion renderer scaling** (currently single Railway instance)
+- **Team/agency accounts**
 
-**What ClipFrom does NOT use the API for:**  
-Reading messages, comments, follower data, analytics, audience insights, or any other Instagram account data.
+---
 
-**Permissions required:**
-- `instagram_basic`
-- `instagram_content_publish`
-- `pages_read_engagement` (if account linked via Facebook Page)
+## Immediate Next Priorities
 
-**Data handling:**
-- Instagram access token stored server-side only (environment variable), never in the database or client
-- No Instagram user profile data is stored beyond what is necessary to publish a video
-- No data is shared with third parties
-
-**Current architecture note:**  
-ClipFrom currently supports a single connected Instagram Business account via server-side environment variables. Per-user Instagram OAuth (allowing each user to connect their own account) is planned but not yet implemented.
+1. **Instagram Graph API submission** — submit to Meta for Live mode approval (screencast demo needed)
+2. **Instagram token refresh** — 60-day expiry cron job
+3. **Stripe customer portal** — let users manage/cancel subscriptions
+4. **Credit refund on failure** — automatic refund when pipeline errors
