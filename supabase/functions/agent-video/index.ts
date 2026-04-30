@@ -22,8 +22,36 @@ Deno.serve(async (req) => {
     const klingApiKey = Deno.env.get("KLING_API_KEY")!;
     const pexelsApiKey = Deno.env.get("PEXELS_API_KEY") ?? "";
 
-    // Fetch the approved captions that were stored in Step 1
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify JWT and check credits
+    const authHeader = req.headers.get("Authorization");
+    const token = authHeader?.replace("Bearer ", "");
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { data: { user: callingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !callingUser) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const { data: profile } = await supabaseAdmin
+      .from("user_profiles")
+      .select("credits_remaining, is_admin")
+      .eq("id", callingUser.id)
+      .maybeSingle();
+
+    if (!profile?.is_admin) {
+      if ((profile?.credits_remaining ?? 0) < 1) {
+        return new Response(JSON.stringify({ error: "no_credits" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      await supabaseAdmin
+        .from("user_profiles")
+        .update({ credits_remaining: (profile!.credits_remaining - 1) })
+        .eq("id", callingUser.id);
+    }
+
+    // Fetch the approved captions that were stored in Step 1
     const { data: gen, error } = await supabaseAdmin
       .from("ai_generations")
       .select("id, caption_options")

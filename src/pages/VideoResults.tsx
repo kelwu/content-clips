@@ -141,7 +141,7 @@ export default function VideoResults() {
         : import.meta.env.VITE_N8N_POLLING_WEBHOOK;
       if (!webhook) return;
       try {
-        await fetch(webhook, {
+        const res = await fetch(webhook, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -152,6 +152,11 @@ export default function VideoResults() {
           },
           body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle, videoSource }),
         });
+        if (res.status === 402) {
+          toast.error("You're out of credits. Upgrade to generate more videos.");
+          navigate("/");
+          return;
+        }
       } catch (err) { console.warn("Could not trigger video generation:", err); }
     };
 

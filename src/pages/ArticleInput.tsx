@@ -102,12 +102,27 @@ const ArticleInput = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeTransition, setActiveTransition] = useState(0);
 
+  const [credits, setCredits] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStateRef = useRef({ idx: 0, charIdx: 0, typing: true });
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("user_profiles")
+      .select("credits_remaining, is_admin")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) { setCredits(data.credits_remaining); setIsAdmin(data.is_admin ?? false); }
+      });
+  }, [user?.id]);
 
   const stages = ["Analyzing your content…", "Extracting key insights…", "Generating captions…", "Polishing results…"];
 
@@ -148,6 +163,10 @@ const ArticleInput = () => {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (user && !isAdmin && credits !== null && credits < 1) {
+      toast.error("You're out of credits. Upgrade to generate more videos.");
+      return;
+    }
     let content: string;
     if (inputMode === "url") {
       content = articleUrl.trim();
@@ -408,12 +427,26 @@ const ArticleInput = () => {
                       </div>
                     )}
                     <div style={{ padding: 10 }}>
-                      <button type="submit" style={{ width: "100%", padding: "13px 0", background: C.accent, border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
-                        color: "oklch(14% 0.015 250)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                        boxShadow: "0 0 20px oklch(72% 0.17 280 / 0.3)" }}>
-                        Generate my video
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                      </button>
+                      {(() => {
+                        const outOfCredits = user && !isAdmin && credits !== null && credits < 1;
+                        return (
+                          <button
+                            type="submit"
+                            disabled={!!outOfCredits}
+                            style={{
+                              width: "100%", padding: "13px 0", background: outOfCredits ? "oklch(30% 0.01 250)" : C.accent,
+                              border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                              color: outOfCredits ? "oklch(55% 0.01 250)" : "oklch(14% 0.015 250)",
+                              cursor: outOfCredits ? "not-allowed" : "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                              boxShadow: outOfCredits ? "none" : "0 0 20px oklch(72% 0.17 280 / 0.3)",
+                            }}
+                          >
+                            {outOfCredits ? "No credits remaining" : "Generate my video"}
+                            {!outOfCredits && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
 

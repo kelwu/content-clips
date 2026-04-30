@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -38,6 +40,23 @@ const navItems = [
 export default function AppShell({ children, activePage }: AppShellProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [credits, setCredits] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("user_profiles")
+      .select("credits_remaining, is_admin")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setCredits(data.credits_remaining);
+          setIsAdmin(data.is_admin ?? false);
+        }
+      });
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -117,9 +136,35 @@ export default function AppShell({ children, activePage }: AppShellProps) {
         {/* Bottom links */}
         <div className="px-3 py-3 border-t border-gray-800 space-y-0.5">
           {user && (
-            <div className="px-3 py-2 mb-1">
-              <p className="text-[10px] text-gray-600 font-medium uppercase tracking-wide">Signed in as</p>
-              <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+            <div className="px-3 py-2 mb-1 space-y-2">
+              <div>
+                <p className="text-[10px] text-gray-600 font-medium uppercase tracking-wide">Signed in as</p>
+                <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+              </div>
+              {!isAdmin && credits !== null && (
+                <div className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">Credits</span>
+                    <span className={`text-xs font-bold ${credits === 0 ? "text-red-400" : credits <= 2 ? "text-amber-400" : "text-violet-400"}`}>
+                      {credits} left
+                    </span>
+                  </div>
+                  <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${credits === 0 ? "bg-red-500" : credits <= 2 ? "bg-amber-500" : "bg-violet-500"}`}
+                      style={{ width: `${Math.min(100, (credits / 5) * 100)}%` }}
+                    />
+                  </div>
+                  {credits === 0 && (
+                    <p className="text-[10px] text-red-400 mt-1.5">Upgrade to generate more videos</p>
+                  )}
+                </div>
+              )}
+              {isAdmin && (
+                <div className="px-1">
+                  <span className="text-[10px] text-violet-500 font-semibold">∞ Admin</span>
+                </div>
+              )}
             </div>
           )}
           <button
