@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Dashboard from "./pages/Dashboard";
+import VideoStyle from "./pages/VideoStyle";
 import Settings from "./pages/Settings";
 import UpgradeSuccess from "./pages/UpgradeSuccess";
 import UpdatePassword from "./pages/UpdatePassword";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/auth/instagram/callback" element={<InstagramCallback />} />
             <Route path="/editor" element={<ProtectedRoute><CaptionEditor /></ProtectedRoute>} />
+            <Route path="/video-style/:projectId" element={<ProtectedRoute><VideoStyle /></ProtectedRoute>} />
             <Route path="/results/:projectId" element={<ProtectedRoute><VideoResults /></ProtectedRoute>} />
             <Route path="/studio/:projectId" element={<ProtectedRoute><Studio /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

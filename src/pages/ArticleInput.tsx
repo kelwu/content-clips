@@ -88,11 +88,22 @@ const TYPING_URLS = [
   "substack.com/p/great-work-playbook",
 ];
 
+const VIDEO_LOG_LINES = [
+  { text: "$ Uploading video to secure storage...", color: "text-gray-400" },
+  { text: "✓ Upload complete", color: "text-emerald-400" },
+  { text: "✓ Video received by transcription engine", color: "text-emerald-400" },
+  { text: "› Analyzing speech patterns...", color: "text-amber-400" },
+  { text: "› Extracting word-level timestamps...", color: "text-amber-400" },
+  { text: "› Preparing caption overlay...", color: "text-amber-400" },
+  { text: "⠦ Finalizing transcript...", color: "text-gray-400" },
+];
+
 const ArticleInput = () => {
-  const [inputMode, setInputMode] = useState<"url" | "text">("url");
+  const [inputMode, setInputMode] = useState<"url" | "text" | "video">("url");
   const [articleUrl, setArticleUrl] = useState("");
   const [articleText, setArticleText] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [stage, setStage] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -167,6 +178,71 @@ const ArticleInput = () => {
       toast.error("You're out of credits. Upgrade to generate more videos.");
       return;
     }
+
+    // ── Video upload mode ──────────────────────────────────────────────────────
+    if (inputMode === "video") {
+      if (!videoFile) { toast.error("Please select a video file"); return; }
+      if (!user) { navigate("/login?returnTo=/"); return; }
+
+      setIsLoading(true);
+      try {
+        const { data: projectData, error: projectError } = await supabase
+          .from("projects")
+          .insert({ source_mode: "video", status: "processing", user_id: user.id })
+          .select("id").single();
+        if (projectError) throw new Error("Failed to create project");
+        const projectId = projectData.id;
+
+        const filePath = `${user.id}/${projectId}/${videoFile.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("user-videos")
+          .upload(filePath, videoFile, { cacheControl: "3600", upsert: false });
+        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+
+        const { data: { publicUrl } } = supabase.storage.from("user-videos").getPublicUrl(filePath);
+
+        const resolvedEmail = user.email ?? "";
+        const transcribeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-video`;
+        const res = await fetch(transcribeUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ project_id: projectId, video_url: publicUrl }),
+        });
+        if (!res.ok) throw new Error("Transcription request failed");
+
+        // Poll for captions_ready
+        const pollStart = Date.now();
+        pollingRef.current = setInterval(async () => {
+          if (Date.now() - pollStart > 3 * 60 * 1000) {
+            clearInterval(pollingRef.current!); setIsLoading(false);
+            toast.error("Transcription is taking too long. Please try again."); return;
+          }
+          try {
+            const { data } = await supabase
+              .from("ai_generations")
+              .select("status, transcript_words")
+              .eq("project_id", projectId).maybeSingle();
+            if (data?.status === "captions_ready") {
+              clearInterval(pollingRef.current!);
+              const wordCount = Array.isArray(data.transcript_words)
+                ? (data.transcript_words as { type: string }[]).filter(w => w.type === "word").length
+                : 0;
+              navigate(`/video-style/${projectId}`, { state: { userEmail: resolvedEmail, wordCount } });
+            }
+          } catch { /* continue polling */ }
+        }, 3000);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Upload failed. Please try again.");
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // ── Article mode ───────────────────────────────────────────────────────────
     let content: string;
     if (inputMode === "url") {
       content = articleUrl.trim();
@@ -266,10 +342,10 @@ const ArticleInput = () => {
           <div className="bg-[#0d0d0d] border border-gray-800 rounded-xl overflow-hidden text-left">
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-gray-800 bg-[#111]">
               <div className="w-3 h-3 rounded-full bg-[#ff5f57]" /><div className="w-3 h-3 rounded-full bg-[#febc2e]" /><div className="w-3 h-3 rounded-full bg-[#28c840]" />
-              <span className="ml-3 text-xs text-gray-500 font-medium select-none">AI Studio — Processing</span>
+              <span className="ml-3 text-xs text-gray-500 font-medium select-none">{inputMode === "video" ? "AI Studio — Transcribing" : "AI Studio — Processing"}</span>
             </div>
             <div className="p-4 font-mono text-xs space-y-1.5 min-h-[160px]">
-              {LOG_LINES.slice(0, visibleLines).map((line, i) => (
+              {(inputMode === "video" ? VIDEO_LOG_LINES : LOG_LINES).slice(0, visibleLines).map((line, i) => (
                 <div key={i} className={`${line.color} leading-relaxed`}>
                   {line.text}
                   {i === visibleLines - 1 && <span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-1 animate-pulse align-middle" />}
@@ -375,12 +451,12 @@ const ArticleInput = () => {
                 <form onSubmit={handleSubmit} style={{ maxWidth: 480 }}>
                   {/* Mode tabs */}
                   <div style={{ display: "flex", gap: 4, marginBottom: 12, padding: 4, background: C.surface, border: `1px solid ${C.strokeSoft}`, borderRadius: 12, width: "fit-content" }}>
-                    {(["url", "text"] as const).map(mode => (
+                    {([["url", "URL"], ["text", "Paste Text"], ["video", "Upload Video"]] as const).map(([mode, label]) => (
                       <button key={mode} type="button" onClick={() => setInputMode(mode)}
                         style={{ padding: "6px 18px", borderRadius: 8, border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s",
                           background: inputMode === mode ? C.accent : "transparent",
                           color: inputMode === mode ? "oklch(14% 0.015 250)" : C.fgDim }}>
-                        {mode === "url" ? "URL" : "Paste Text"}
+                        {label}
                       </button>
                     ))}
                   </div>
@@ -403,10 +479,28 @@ const ArticleInput = () => {
                             )}
                           </div>
                         </div>
-                      ) : (
+                      ) : inputMode === "text" ? (
                         <textarea value={articleText} onChange={e => setArticleText(e.target.value)}
                           placeholder="Paste your article or content here…" rows={4}
                           style={{ width: "100%", background: "transparent", border: "none", outline: "none", color: C.fg, fontSize: 14, resize: "none", lineHeight: 1.6, fontFamily: '"Geist", system-ui, sans-serif' }} />
+                      ) : (
+                        <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 16px", cursor: "pointer", textAlign: "center" }}>
+                          <input type="file" accept="video/*" style={{ display: "none" }} onChange={e => setVideoFile(e.target.files?.[0] ?? null)} />
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={videoFile ? C.accent : C.fgDim} strokeWidth="1.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                          </svg>
+                          {videoFile ? (
+                            <div>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.fg }}>{videoFile.name}</p>
+                              <p style={{ margin: "4px 0 0", fontSize: 11, color: C.fgDim }}>{(videoFile.size / 1024 / 1024).toFixed(1)} MB · click to change</p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.fg }}>Click to upload your video</p>
+                              <p style={{ margin: "4px 0 0", fontSize: 11, color: C.fgDim }}>MP4, MOV, WebM · up to 500 MB · max 3 min</p>
+                            </div>
+                          )}
+                        </label>
                       )}
                     </div>
                     {user ? (
@@ -442,7 +536,7 @@ const ArticleInput = () => {
                               boxShadow: outOfCredits ? "none" : "0 0 20px oklch(72% 0.17 280 / 0.3)",
                             }}
                           >
-                            {outOfCredits ? "No credits remaining" : "Generate my video"}
+                            {outOfCredits ? "No credits remaining" : inputMode === "video" ? "Upload & Transcribe" : "Generate my video"}
                             {!outOfCredits && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
                           </button>
                         );
@@ -451,7 +545,10 @@ const ArticleInput = () => {
                   </div>
 
                   <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 14 }}>
-                    {["9:16 vertical", "AI voiceover", "~3 min render"].map(item => (
+                    {(inputMode === "video"
+                      ? ["9:16 vertical", "Auto captions", "B-roll added"]
+                      : ["9:16 vertical", "AI voiceover", "~3 min render"]
+                    ).map(item => (
                       <span key={item} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.fgDim, fontFamily: mono }}>
                         <span style={{ width: 4, height: 4, borderRadius: "50%", background: C.accent, display: "inline-block" }} />
                         {item}

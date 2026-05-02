@@ -56,6 +56,7 @@ export default function VideoResults() {
   const captionStyle: string = location.state?.captionStyle ?? "pill";
   const transitionStyle: string = location.state?.transitionStyle ?? "cut";
   const videoSource: string = location.state?.videoSource ?? "ai";
+  const sourceMode: string = location.state?.sourceMode ?? "article";
 
   const clips = [result.video_url_1, result.video_url_2, result.video_url_3, result.video_url_4, result.video_url_5];
   const videoUrlsFilled = clips.filter(Boolean).length;
@@ -66,28 +67,44 @@ export default function VideoResults() {
 
   // Process Observability: derive step states from DB status
   const status = result.status || "";
-  const obsSteps = [
-    { label: "Scraping Article", sub: "Fetching and parsing source content", done: true, active: false },
-    { label: "The Writer", sub: "Scripting captions from key insights", done: true, active: false },
-    {
-      label: "The Director",
-      sub: "Generating clips",
-      done: ["kling_tasks_done", "videos_ready", "complete"].includes(status),
-      active: ["generating_videos", "kling_tasks_created"].includes(status),
-    },
-    {
-      label: "Audio Synthesis",
-      sub: "Generating voiceover",
-      done: videoUrlsFilled > 0 || ["videos_ready", "complete"].includes(status),
-      active: status === "kling_tasks_done",
-    },
-    {
-      label: "Rendering",
-      sub: "Stitching clips, voiceover & captions",
-      done: status === "complete",
-      active: status === "videos_ready",
-    },
-  ];
+  const obsSteps = sourceMode === "video"
+    ? [
+        { label: "Transcript Ready", sub: "Word-level timestamps extracted", done: true, active: false },
+        {
+          label: "B-Roll",
+          sub: "Sourcing stock clips per segment",
+          done: ["videos_ready", "complete"].includes(status),
+          active: status === "generating_broll",
+        },
+        {
+          label: "Rendering",
+          sub: "Compositing captions + B-roll",
+          done: status === "complete",
+          active: status === "videos_ready",
+        },
+      ]
+    : [
+        { label: "Scraping Article", sub: "Fetching and parsing source content", done: true, active: false },
+        { label: "The Writer", sub: "Scripting captions from key insights", done: true, active: false },
+        {
+          label: "The Director",
+          sub: "Generating clips",
+          done: ["kling_tasks_done", "videos_ready", "complete"].includes(status),
+          active: ["generating_videos", "kling_tasks_created"].includes(status),
+        },
+        {
+          label: "Audio Synthesis",
+          sub: "Generating voiceover",
+          done: videoUrlsFilled > 0 || ["videos_ready", "complete"].includes(status),
+          active: status === "kling_tasks_done",
+        },
+        {
+          label: "Rendering",
+          sub: "Stitching clips, voiceover & captions",
+          done: status === "complete",
+          active: status === "videos_ready",
+        },
+      ];
 
   const displayCaptions = approvedCaptions.length > 0
     ? approvedCaptions.map((c) => c.text)
@@ -135,23 +152,41 @@ export default function VideoResults() {
         .from("ai_generations").select("status").eq("project_id", projectId).maybeSingle();
       if (existing?.status && existing.status !== "captions_ready") return;
 
-      const useAgentPipeline = import.meta.env.VITE_USE_AGENT_PIPELINE === "true";
-      const webhook = useAgentPipeline
-        ? import.meta.env.VITE_AGENT_VIDEO_FUNCTION_URL
-        : import.meta.env.VITE_N8N_POLLING_WEBHOOK;
-      if (!webhook) return;
       try {
-        const res = await fetch(webhook, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(useAgentPipeline && {
+        let res: Response;
+
+        if (sourceMode === "video") {
+          // User-uploaded video: call trigger-caption-video
+          const webhook = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trigger-caption-video`;
+          res = await fetch(webhook, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
               "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
               "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-            }),
-          },
-          body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle, videoSource }),
-        });
+            },
+            body: JSON.stringify({ project_id: projectId, captionStyle, user_email: userEmail }),
+          });
+        } else {
+          // Article mode: call agent-video (or n8n fallback)
+          const useAgentPipeline = import.meta.env.VITE_USE_AGENT_PIPELINE === "true";
+          const webhook = useAgentPipeline
+            ? import.meta.env.VITE_AGENT_VIDEO_FUNCTION_URL
+            : import.meta.env.VITE_N8N_POLLING_WEBHOOK;
+          if (!webhook) return;
+          res = await fetch(webhook, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(useAgentPipeline && {
+                "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+              }),
+            },
+            body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle, videoSource }),
+          });
+        }
+
         if (res.status === 402) {
           toast.error("You're out of credits. Upgrade to generate more videos.");
           navigate("/");
