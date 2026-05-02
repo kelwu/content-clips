@@ -115,6 +115,7 @@ export default function VideoResults() {
     : status === "videos_ready" ? 90
     : status === "kling_tasks_done" ? 70
     : status === "kling_tasks_created" ? 50
+    : status === "generating_videos" ? 30
     : videoUrlsFilled > 0 ? 40 + videoUrlsFilled * 8
     : 20;
 
@@ -168,20 +169,14 @@ export default function VideoResults() {
             body: JSON.stringify({ project_id: projectId, captionStyle, user_email: userEmail }),
           });
         } else {
-          // Article mode: call agent-video (or n8n fallback)
-          const useAgentPipeline = import.meta.env.VITE_USE_AGENT_PIPELINE === "true";
-          const webhook = useAgentPipeline
-            ? import.meta.env.VITE_AGENT_VIDEO_FUNCTION_URL
-            : import.meta.env.VITE_N8N_POLLING_WEBHOOK;
-          if (!webhook) return;
+          // Article mode: call agent-video → Railway pipeline
+          const webhook = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-video`;
           res = await fetch(webhook, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              ...(useAgentPipeline && {
-                "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-              }),
+              "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
             },
             body: JSON.stringify({ project_id: projectId, user_email: userEmail, captionStyle, transitionStyle, videoSource }),
           });
