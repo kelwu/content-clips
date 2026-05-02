@@ -96,11 +96,10 @@ You will receive either an article URL or article text. Complete these steps in 
 
 ### Step 2: Write 5 short-form video captions
 Each caption must be:
-- 15–25 words maximum
-- A punchy hook or insight designed for vertical video (TikTok/Reels)
+- 8–12 words maximum — short, punchy, designed to be read in under 4 seconds
+- A hook or insight designed for vertical video (TikTok/Reels)
 - Present tense, active voice
-- No hashtags
-- Add 1–2 relevant emojis naturally (at the start or end of the caption, not mid-sentence)
+- No hashtags, no emojis
 
 ### Step 3: Write 1 Instagram caption
 - 150–200 words, conversational and engaging

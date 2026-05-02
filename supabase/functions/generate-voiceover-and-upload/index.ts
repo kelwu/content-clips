@@ -9,13 +9,21 @@ const corsHeaders = {
 
 const FPS = 30;
 
+function stripEmojis(text: string): string {
+  return text.replace(/\p{Extended_Pictographic}/gu, "").replace(/\s+/g, " ").trim();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { script, ai_gen_id, captions } = await req.json();
+    const { ai_gen_id, captions } = await req.json();
+
+    // Strip emojis for TTS — emojis are skipped by ElevenLabs and break character offset math
+    const cleanCaptions: string[] = Array.isArray(captions) ? captions.map(stripEmojis) : [];
+    const cleanScript = cleanCaptions.join(" ");
 
     // Use the with-timestamps endpoint to get character-level timing data
     const elevenResponse = await fetch(
@@ -27,7 +35,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: script,
+          text: cleanScript,
           model_id: "eleven_monolingual_v1",
           voice_settings: { stability: 0.5, similarity_boost: 0.75 },
         }),
@@ -70,25 +78,27 @@ serve(async (req) => {
     let caption_timings: number[] = [0, 0, 0, 0, 0];
 
     const alignment = elevenData.alignment;
-    if (captions && Array.isArray(captions) && captions.length === 5 && alignment?.character_start_times_seconds) {
+    if (cleanCaptions.length === 5 && alignment?.character_start_times_seconds) {
       const startTimes: number[] = alignment.character_start_times_seconds;
 
-      // The script is captions.join(" "), so caption boundaries are at known character offsets
+      // Use emoji-stripped caption lengths — ElevenLabs skips emojis so raw .length would be off
       let charOffset = 0;
       for (let i = 0; i < 5; i++) {
         if (i === 0) {
           caption_timings[0] = 0;
         } else {
-          // Clamp to valid range in case of any length mismatch
           const idx = Math.min(charOffset, startTimes.length - 1);
           caption_timings[i] = Math.round(startTimes[idx] * FPS);
         }
-        charOffset += captions[i].length + 1; // +1 for the joining space
+        charOffset += cleanCaptions[i].length + 1; // +1 for the joining space
       }
     }
 
+    const endTimes: number[] = alignment?.character_end_times_seconds ?? [];
+    const audio_duration_seconds = endTimes.length > 0 ? endTimes[endTimes.length - 1] : null;
+
     return new Response(
-      JSON.stringify({ success: true, audio_url: publicUrl, caption_timings }),
+      JSON.stringify({ success: true, audio_url: publicUrl, caption_timings, audio_duration_seconds }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
