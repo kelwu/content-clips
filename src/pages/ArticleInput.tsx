@@ -281,9 +281,7 @@ const ArticleInput = () => {
 
     setIsLoading(true);
     try {
-      const useAgentPipeline = import.meta.env.VITE_USE_AGENT_PIPELINE === "true";
-      const webhookUrl = useAgentPipeline ? import.meta.env.VITE_AGENT_CONTENT_FUNCTION_URL : import.meta.env.VITE_N8N_CONTENT_WEBHOOK;
-      if (!webhookUrl) throw new Error("Webhook URL not configured");
+      const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-content`;
 
       const { data: projectData, error: projectError } = await supabase
         .from("projects").insert({ article_url: inputMode === "url" ? content : null, status: "processing", user_id: user.id }).select("id").single();
@@ -292,14 +290,14 @@ const ArticleInput = () => {
       const projectId = projectData.id;
       const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(useAgentPipeline && { "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY }) },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY },
         body: JSON.stringify({ content, type: inputMode, project_id: projectId, user_email: resolvedEmail }),
       });
       if (!response.ok) throw new Error(`Pipeline failed: ${response.statusText}`);
 
       const pollStart = Date.now();
       pollingRef.current = setInterval(async () => {
-        if (Date.now() - pollStart > 3 * 60 * 1000) {
+        if (Date.now() - pollStart > 5 * 60 * 1000) {
           clearInterval(pollingRef.current!); setIsLoading(false);
           toast.error("Caption generation is taking too long. Please try again."); return;
         }
