@@ -293,30 +293,19 @@ const ArticleInput = () => {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`, "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY },
         body: JSON.stringify({ content, type: inputMode, project_id: projectId, user_email: resolvedEmail }),
       });
-      if (!response.ok) throw new Error(`Pipeline failed: ${response.statusText}`);
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || `Pipeline failed: ${response.statusText}`);
+      }
 
-      const pollStart = Date.now();
-      pollingRef.current = setInterval(async () => {
-        if (Date.now() - pollStart > 5 * 60 * 1000) {
-          clearInterval(pollingRef.current!); setIsLoading(false);
-          toast.error("Caption generation is taking too long. Please try again."); return;
-        }
-        try {
-          const { data: aiData } = await supabase.from("ai_generations").select("caption_options, text_content, status").eq("project_id", projectId).maybeSingle();
-          if (!aiData) return;
-          const captions = aiData.caption_options || aiData.text_content;
-          if (!captions || (Array.isArray(captions) && captions.length === 0)) return;
-          const captionObj = typeof captions === "string" ? JSON.parse(captions) : captions;
-          const hasContent = Array.isArray(captionObj) ? captionObj.some((v: unknown) => v) : captionObj?.text1;
-          if (hasContent) {
-            clearInterval(pollingRef.current!);
-            const captionForEditor = Array.isArray(captionObj)
-              ? captionObj.reduce((acc: Record<string, string>, text: string, i: number) => ({ ...acc, [`text${i + 1}`]: text }), {})
-              : captionObj;
-            navigate("/editor", { state: { projectId, userEmail: resolvedEmail, content, inputMode, captions: captionForEditor } });
-          }
-        } catch { /* continue polling */ }
-      }, 5000);
+      const result = await response.json();
+      const captionList: string[] = result.caption_options ?? [];
+      if (captionList.length === 0) throw new Error("No captions returned — please try again.");
+      const captionForEditor = captionList.reduce(
+        (acc: Record<string, string>, text: string, i: number) => ({ ...acc, [`text${i + 1}`]: text }),
+        {}
+      );
+      navigate("/editor", { state: { projectId, userEmail: resolvedEmail, content, inputMode, captions: captionForEditor } });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to process your content. Please try again.");
       setIsLoading(false);
@@ -416,7 +405,7 @@ const ArticleInput = () => {
                 <button onClick={() => navigate("/login")} style={{ background: "none", border: "none", color: C.fgMuted, fontSize: 14, cursor: "pointer", padding: 0, transition: "color 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.color = C.fg)} onMouseLeave={e => (e.currentTarget.style.color = C.fgMuted)}>Login</button>
               )}
-              <button onClick={() => heroRef.current?.scrollIntoView({ behavior: "smooth" })}
+              <button onClick={() => user ? heroRef.current?.scrollIntoView({ behavior: "smooth" }) : navigate("/login")}
                 style={{ padding: "7px 18px", background: C.accent, border: "none", borderRadius: 8, fontSize: 14, fontWeight: 600, color: "oklch(14% 0.015 250)", cursor: "pointer" }}>
                 Get Started
               </button>
