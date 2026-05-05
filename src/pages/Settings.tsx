@@ -10,6 +10,9 @@ interface Profile {
   instagram_username: string | null;
   instagram_token_expires_at: string | null;
   caption_outro: string | null;
+  credits_remaining: number | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
 }
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
@@ -34,16 +37,17 @@ export default function Settings() {
   const [savingOutro, setSavingOutro] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connectingIg, setConnectingIg] = useState(false);
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("user_profiles")
-      .select("instagram_account_id, instagram_username, instagram_token_expires_at, caption_outro")
+      .select("instagram_account_id, instagram_username, instagram_token_expires_at, caption_outro, credits_remaining, stripe_customer_id, stripe_subscription_id")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setProfile(data ?? { instagram_account_id: null, instagram_username: null, instagram_token_expires_at: null, caption_outro: null });
+        setProfile(data ?? { instagram_account_id: null, instagram_username: null, instagram_token_expires_at: null, caption_outro: null, credits_remaining: null, stripe_customer_id: null, stripe_subscription_id: null });
         setOutro(data?.caption_outro ?? "");
       });
   }, [user?.id]);
@@ -99,6 +103,35 @@ export default function Settings() {
     } catch {
       toast.error("Could not reach server");
       setConnectingIg(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    if (!session) return;
+    setLoadingPortal(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-portal`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ return_url: window.location.href }),
+        }
+      );
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Could not open billing portal");
+        setLoadingPortal(false);
+      }
+    } catch {
+      toast.error("Could not reach server");
+      setLoadingPortal(false);
     }
   };
 
@@ -181,6 +214,46 @@ export default function Settings() {
                 </svg>
                 {connectingIg ? "Connecting…" : "Connect Instagram Account"}
               </button>
+            )}
+          </Section>
+
+          {/* Billing */}
+          <Section title="Billing" description="Your current plan and credit balance.">
+            {profile === null ? (
+              <div className="h-20 bg-gray-900 border border-gray-800 rounded-xl animate-pulse" />
+            ) : (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Plan</p>
+                    <p className="text-sm text-white mt-0.5">
+                      {profile.stripe_subscription_id ? "Active subscription" : "Free"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Credits</p>
+                    <p className="text-sm text-white mt-0.5">
+                      {profile.credits_remaining ?? 0} remaining
+                    </p>
+                  </div>
+                </div>
+                {profile.stripe_customer_id ? (
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={loadingPortal}
+                    className="w-full px-4 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 rounded-lg text-xs font-semibold text-gray-300 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loadingPortal ? "Opening portal…" : "Manage subscription"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/?upgrade=true")}
+                    className="w-full px-4 py-2.5 bg-violet-500 hover:bg-violet-600 rounded-lg text-xs font-semibold text-white transition-colors"
+                  >
+                    Upgrade plan
+                  </button>
+                )}
+              </div>
             )}
           </Section>
 
