@@ -74,8 +74,9 @@ serve(async (req) => {
       .from("voiceovers")
       .getPublicUrl(fileName);
 
-    // Derive per-caption frame offsets from ElevenLabs character timestamps
+    // Derive per-caption and per-word frame offsets from ElevenLabs character timestamps
     let caption_timings: number[] = [0, 0, 0, 0, 0];
+    let word_timings: number[][] = [[], [], [], [], []];
 
     const alignment = elevenData.alignment;
     if (cleanCaptions.length === 5 && alignment?.character_start_times_seconds) {
@@ -90,6 +91,17 @@ serve(async (req) => {
           const idx = Math.min(charOffset, startTimes.length - 1);
           caption_timings[i] = Math.round(startTimes[idx] * FPS);
         }
+
+        // Per-word timings: find the char offset of each word within this caption
+        const words = cleanCaptions[i].split(" ").filter(Boolean);
+        let wordCharOffset = charOffset;
+        word_timings[i] = words.map((word) => {
+          const idx = Math.min(wordCharOffset, startTimes.length - 1);
+          const frame = Math.round(startTimes[idx] * FPS);
+          wordCharOffset += word.length + 1; // +1 for space after word
+          return frame;
+        });
+
         charOffset += cleanCaptions[i].length + 1; // +1 for the joining space
       }
     }
@@ -98,7 +110,7 @@ serve(async (req) => {
     const audio_duration_seconds = endTimes.length > 0 ? endTimes[endTimes.length - 1] : null;
 
     return new Response(
-      JSON.stringify({ success: true, audio_url: publicUrl, caption_timings, audio_duration_seconds }),
+      JSON.stringify({ success: true, audio_url: publicUrl, caption_timings, word_timings, audio_duration_seconds }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

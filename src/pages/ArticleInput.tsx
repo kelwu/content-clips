@@ -183,21 +183,29 @@ const ArticleInput = () => {
     if (inputMode === "video") {
       if (!videoFile) { toast.error("Please select a video file"); return; }
       if (!user) { navigate("/login?returnTo=/"); return; }
+      const MAX_SIZE_MB = 500;
+      if (videoFile.size > MAX_SIZE_MB * 1024 * 1024) {
+        toast.error(`Video is too large (${(videoFile.size / 1024 / 1024).toFixed(0)} MB). Please use a file under ${MAX_SIZE_MB} MB.`);
+        return;
+      }
 
       setIsLoading(true);
+      let projectId: string | null = null;
+      let uploadedFilePath: string | null = null;
       try {
         const { data: projectData, error: projectError } = await supabase
           .from("projects")
           .insert({ source_mode: "video", status: "processing", user_id: user.id })
           .select("id").single();
         if (projectError) throw new Error("Failed to create project");
-        const projectId = projectData.id;
+        projectId = projectData.id;
 
         const filePath = `${user.id}/${projectId}/${videoFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from("user-videos")
           .upload(filePath, videoFile, { cacheControl: "3600", upsert: false });
         if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+        uploadedFilePath = filePath;
 
         const { data: { publicUrl } } = supabase.storage.from("user-videos").getPublicUrl(filePath);
 
@@ -225,7 +233,7 @@ const ArticleInput = () => {
             const { data } = await supabase
               .from("ai_generations")
               .select("status, transcript_words")
-              .eq("project_id", projectId).maybeSingle();
+              .eq("project_id", projectId!).maybeSingle();
             if (data?.status === "captions_ready") {
               clearInterval(pollingRef.current!);
               const wordCount = Array.isArray(data.transcript_words)
@@ -236,6 +244,13 @@ const ArticleInput = () => {
           } catch { /* continue polling */ }
         }, 3000);
       } catch (error) {
+        // Clean up orphaned DB row and storage file so the user can retry cleanly
+        if (projectId) {
+          await supabase.from("projects").delete().eq("id", projectId);
+        }
+        if (uploadedFilePath) {
+          await supabase.storage.from("user-videos").remove([uploadedFilePath]);
+        }
         toast.error(error instanceof Error ? error.message : "Upload failed. Please try again.");
         setIsLoading(false);
       }

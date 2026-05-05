@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js";
-import { anthropic } from "../_shared/anthropic-client.ts";
+import Anthropic from "npm:@anthropic-ai/sdk";
 import type { ContentWebhookPayload } from "../_shared/types.ts";
 
 const corsHeaders = {
@@ -18,57 +18,84 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY")!;
 
-    // Mark processing started so the frontend polling sees activity
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    await supabaseAdmin.from("ai_generations").upsert({
-      project_id,
-      status: "processing",
-    });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Create the agent, environment, and session — then fire and forget.
-    // The agent runs in Anthropic's cloud and writes results directly to
-    // Supabase when done. The frontend is already polling for those results.
-    const agent = await anthropic.beta.agents.create({
-      name: `caption-agent-${project_id}`,
+    // Mark processing immediately
+    await supabase.from("ai_generations").upsert(
+      { project_id, status: "processing", caption_options: [] },
+      { onConflict: "project_id" }
+    );
+
+    // Fetch article text if URL was given
+    let articleText = content;
+    if (type === "url") {
+      const resp = await fetch(content, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; ClipFrom/1.0)" },
+      });
+      const html = await resp.text();
+      articleText = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 10000);
+    }
+
+    // Generate captions via Claude
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
+    const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      system: buildCaptionSystemPrompt(project_id, supabaseUrl, supabaseServiceKey),
-      tools: [{ type: "agent_toolset_20260401" }],
-    });
-
-    const environment = await anthropic.beta.environments.create({
-      name: `caption-env-${project_id}`,
-      config: {
-        type: "cloud",
-        networking: { type: "unrestricted" },
-      },
-    });
-
-    const session = await anthropic.beta.sessions.create({
-      agent: agent.id,
-      environment_id: environment.id,
-      title: `Caption generation — ${project_id}`,
-    });
-
-    await anthropic.beta.sessions.events.send(session.id, {
-      events: [
+      max_tokens: 1024,
+      messages: [
         {
-          type: "user.message",
-          content: [
-            {
-              type: "text",
-              text:
-                type === "url"
-                  ? `Generate 5 short-form video captions from this article URL: ${content}`
-                  : `Generate 5 short-form video captions from this article text:\n\n${content}`,
-            },
-          ],
+          role: "user",
+          content: `You are a social media content writer. Generate captions from this article.
+
+Article:
+${articleText}
+
+Return ONLY valid JSON — no explanation, no markdown fences:
+{
+  "caption_options": ["caption 1", "caption 2", "caption 3", "caption 4", "caption 5"],
+  "description": "instagram caption here"
+}
+
+Rules for caption_options (exactly 5 items):
+- Each 8–12 words, punchy hook designed for TikTok/Reels
+- Present tense, active voice, no hashtags, no emojis
+
+Rules for description:
+- 150–200 words, conversational tone
+- Ends with 10–15 relevant hashtags`,
         },
       ],
     });
 
+    const text = response.content[0].type === "text" ? response.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error(`No JSON in Claude response: ${text.slice(0, 200)}`);
+
+    const data = JSON.parse(jsonMatch[0]) as {
+      caption_options: string[];
+      description: string;
+    };
+
+    // Write captions to DB
+    await supabase
+      .from("ai_generations")
+      .update({
+        caption_options: data.caption_options,
+        description: data.description,
+        status: "captions_ready",
+      })
+      .eq("project_id", project_id);
+
+    // Return captions directly — frontend can navigate immediately
     return new Response(
-      JSON.stringify({ ok: true, project_id, session_id: session.id }),
+      JSON.stringify({ ok: true, project_id, caption_options: data.caption_options, description: data.description }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
@@ -79,53 +106,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-function buildCaptionSystemPrompt(
-  projectId: string,
-  supabaseUrl: string,
-  supabaseServiceKey: string
-): string {
-  return `You are a social media content writer that transforms articles into viral short-form video captions.
-
-## Your Task
-You will receive either an article URL or article text. Complete these steps in order:
-
-### Step 1: Get the article content
-- If given a URL: use your web fetch tool to retrieve the full article text
-- If given text directly: use it as-is
-
-### Step 2: Write 5 short-form video captions
-Each caption must be:
-- 8–12 words maximum — short, punchy, designed to be read in under 4 seconds
-- A hook or insight designed for vertical video (TikTok/Reels)
-- Present tense, active voice
-- No hashtags, no emojis
-
-### Step 3: Write 1 Instagram caption
-- 150–200 words, conversational and engaging
-- Summarizes the key insight from the article
-- 10–15 relevant hashtags at the very end
-
-### Step 4: Write results to Supabase
-Make an HTTP PATCH request:
-
-URL: ${supabaseUrl}/rest/v1/ai_generations?project_id=eq.${projectId}
-
-Headers:
-  apikey: ${supabaseServiceKey}
-  Authorization: Bearer ${supabaseServiceKey}
-  Content-Type: application/json
-  Prefer: return=minimal
-
-Body (JSON):
-{
-  "caption_options": ["caption 1 text", "caption 2 text", "caption 3 text", "caption 4 text", "caption 5 text"],
-  "description": "your full instagram caption with #hashtags at the end",
-  "status": "captions_ready"
-}
-
-## Rules
-- Write captions to Supabase only — do NOT return them as text in your reply
-- Confirm success after the PATCH returns a 2xx status
-- If the PATCH fails, log the error and retry once`;
-}
