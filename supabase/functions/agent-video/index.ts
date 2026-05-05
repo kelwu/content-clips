@@ -34,18 +34,20 @@ Deno.serve(async (req) => {
     }
 
     const { data: profile } = await supabaseAdmin
-      .from("users")
-      .select("credits_remaining")
+      .from("user_profiles")
+      .select("credits_remaining, is_admin")
       .eq("id", callingUser.id)
       .maybeSingle();
 
-    if ((profile?.credits_remaining ?? 0) < 1) {
+    if (!profile?.is_admin && (profile?.credits_remaining ?? 0) < 1) {
       return new Response(JSON.stringify({ error: "no_credits" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    await supabaseAdmin
-      .from("users")
-      .update({ credits_remaining: profile!.credits_remaining - 1 })
-      .eq("id", callingUser.id);
+    if (!profile?.is_admin) {
+      await supabaseAdmin
+        .from("user_profiles")
+        .update({ credits_remaining: profile!.credits_remaining - 1 })
+        .eq("id", callingUser.id);
+    }
 
     // Fetch captions
     const { data: gen, error } = await supabaseAdmin
