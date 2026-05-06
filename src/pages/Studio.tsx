@@ -7,9 +7,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { StudioComposition, type CaptionStyle } from "@/components/studio/StudioComposition";
 
 const CLIP_DURATION = 150;
+const HOOK_DURATION = 45;
 
 function totalFrames(transitionDuration: number) {
-  return CLIP_DURATION * 5 + transitionDuration * 4;
+  return HOOK_DURATION + CLIP_DURATION * 5 + transitionDuration * 4;
 }
 
 const STYLE_OPTIONS: { value: CaptionStyle; label: string; desc: string }[] = [
@@ -36,6 +37,8 @@ export default function Studio() {
   const initialCaptions: string[] = location.state?.captions ?? ["", "", "", "", ""];
   const initialStyle: CaptionStyle = location.state?.captionStyle ?? "pill";
   const initialTransition: string = location.state?.transitionStyle ?? "fade";
+  const captionTimings: number[] | undefined = stateResult.caption_timings ?? undefined;
+  const wordTimings: number[][] | undefined = stateResult.word_timings ?? undefined;
   const stitchedVideoUrl: string = stateResult.stitched_video_url ?? "";
 
   const clips: [string, string, string, string, string] = [
@@ -212,6 +215,8 @@ export default function Studio() {
                 captions: captions as [string,string,string,string,string],
                 captionStyle,
                 transitionStyle,
+                captionTimings,
+                wordTimings,
               }}
               durationInFrames={duration}
               compositionWidth={1080}
