@@ -12,58 +12,99 @@ interface Caption {
 
 const SAMPLE_TEXT = "AI is changing everything";
 
-const styleOptions = [
+const PRESETS = [
   {
-    id: "pill" as const,
-    label: "Pill",
-    preview: (
+    id: "viral",
+    label: "Viral",
+    tag: "Most Popular",
+    description: "Word-by-word highlights, zoom punches, hard cuts",
+    captionStyle: "pill" as const,
+    transitionStyle: "cut" as const,
+    videoSource: "ai" as const,
+    accent: "#E89054",
+    ring: "ring-[#E89054]/60",
+    border: "border-[#E89054]/30",
+    bg: "bg-[#E89054]/5",
+    previewCaption: (
       <div className="absolute bottom-4 left-0 right-0 flex justify-center px-2">
-        <div className="bg-black/60 rounded-full px-2 py-1">
-          <span className="text-white text-[7px] font-bold leading-tight text-center block">
-            {SAMPLE_TEXT}
-          </span>
+        <div className="flex gap-0.5">
+          <div className="bg-[#E89054] rounded-md px-1.5 py-0.5">
+            <span className="text-white text-[6px] font-black leading-tight">AI</span>
+          </div>
+          <div className="bg-black/70 rounded-md px-1.5 py-0.5">
+            <span className="text-white/70 text-[6px] font-bold leading-tight">is changing</span>
+          </div>
         </div>
       </div>
     ),
+    attrs: ["Pill captions", "Hard cut", "AI footage"],
   },
   {
-    id: "bold" as const,
-    label: "Bold",
-    preview: (
+    id: "clean",
+    label: "Clean",
+    tag: null,
+    description: "Bold karaoke text, smooth fades, real stock clips",
+    captionStyle: "bold" as const,
+    transitionStyle: "fade" as const,
+    videoSource: "stock" as const,
+    accent: "#60a5fa",
+    ring: "ring-[#60a5fa]/60",
+    border: "border-[#60a5fa]/30",
+    bg: "bg-[#60a5fa]/5",
+    previewCaption: (
       <div className="absolute bottom-4 left-0 right-0 flex justify-center px-3">
-        <span
-          className="text-white text-[8.5px] font-black leading-tight text-center"
-          style={{ textShadow: "0 1px 8px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9)" }}
-        >
-          {SAMPLE_TEXT}
-        </span>
+        <div>
+          <span className="text-[#F5C518] text-[8px] font-black">AI </span>
+          <span className="text-white text-[8px] font-black" style={{ textShadow: "0 1px 6px rgba(0,0,0,1)" }}>is changing</span>
+        </div>
       </div>
     ),
+    attrs: ["Bold text", "Fade", "Stock footage"],
   },
   {
-    id: "lower-third" as const,
-    label: "Lower Third",
-    preview: (
+    id: "cinematic",
+    label: "Cinematic",
+    tag: null,
+    description: "Subtitle bar, wipe transitions, AI + stock mix",
+    captionStyle: "lower-third" as const,
+    transitionStyle: "wipe" as const,
+    videoSource: "mix" as const,
+    accent: "#a78bfa",
+    ring: "ring-[#a78bfa]/60",
+    border: "border-[#a78bfa]/30",
+    bg: "bg-[#a78bfa]/5",
+    previewCaption: (
       <div className="absolute bottom-0 left-0 right-0 bg-black/65 px-2 py-1.5">
-        <span className="text-white text-[7px] font-semibold leading-tight block">
-          {SAMPLE_TEXT}
-        </span>
+        <span className="text-[#E89054] text-[6px] font-bold">AI </span>
+        <span className="text-white text-[6px] font-semibold">is changing</span>
       </div>
     ),
+    attrs: ["Lower third", "Wipe", "AI + Stock"],
   },
   {
-    id: "none" as const,
-    label: "Off",
-    preview: (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-gray-600">
-          <line x1="4" y1="4" x2="20" y2="20"/><path d="M9 5h11v11M5 9v10h10"/>
+    id: "raw",
+    label: "Raw",
+    tag: null,
+    description: "No captions, pure visuals, hard cuts",
+    captionStyle: "none" as const,
+    transitionStyle: "cut" as const,
+    videoSource: "ai" as const,
+    accent: "#6b7280",
+    ring: "ring-gray-500/60",
+    border: "border-gray-500/30",
+    bg: "bg-gray-500/5",
+    previewCaption: (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="1.5">
+          <path d="M2 2l20 20M9 9v11h11M4 4H2v16h5"/>
         </svg>
-        <span className="text-gray-600 text-[6px] text-center leading-tight">No captions</span>
       </div>
     ),
+    attrs: ["No captions", "Hard cut", "AI footage"],
   },
 ] as const;
+
+type PresetId = typeof PRESETS[number]["id"];
 
 export default function CaptionEditor() {
   const location = useLocation();
@@ -82,9 +123,7 @@ export default function CaptionEditor() {
 
   const [captions, setCaptions] = useState<Caption[]>(initialCaptions);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [captionStyle, setCaptionStyle] = useState<"pill" | "bold" | "lower-third" | "none">("pill");
-  const [transitionStyle, setTransitionStyle] = useState<"cut" | "fade" | "dissolve" | "wipe">("cut");
-  const [videoSource, setVideoSource] = useState<"ai" | "stock" | "mix">("ai");
+  const [selectedPreset, setSelectedPreset] = useState<PresetId>("viral");
 
   const enabledCount = captions.filter((c) => c.enabled).length;
 
@@ -106,10 +145,18 @@ export default function CaptionEditor() {
       toast.error("Please enable at least one caption to generate videos.");
       return;
     }
+    const preset = PRESETS.find((p) => p.id === selectedPreset)!;
     setIsGenerating(true);
     toast.success("Generating your videos...");
     navigate(`/results/${projectId}`, {
-      state: { projectId, userEmail, captions: enabledCaptions, captionStyle, transitionStyle, videoSource },
+      state: {
+        projectId,
+        userEmail,
+        captions: enabledCaptions,
+        captionStyle: preset.captionStyle,
+        transitionStyle: preset.transitionStyle,
+        videoSource: preset.videoSource,
+      },
     });
   };
 
@@ -238,190 +285,117 @@ export default function CaptionEditor() {
             </div>
           </div>
 
-          {/* ── Right column: caption style picker ── */}
+          {/* ── Right column: video style presets ── */}
           <div className="w-72 flex-shrink-0 border-l border-gray-800 overflow-y-auto">
-            <div className="sticky top-0 p-5">
+            <div className="p-5">
 
-              {/* Header */}
               <div className="mb-5">
                 <div className="flex items-center gap-2 mb-1">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-                    <rect x="2" y="7" width="20" height="14" rx="2"/>
-                    <path d="M16 3l-4 4-4-4"/>
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                   </svg>
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Caption Style</span>
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Video Style</span>
                 </div>
                 <p className="text-[11px] text-gray-600 leading-relaxed">
-                  Choose how captions appear burned into your video. Preview shows your actual style.
+                  Pick a style — each bundles captions, transitions, and footage into one vibe.
                 </p>
               </div>
 
-              {/* 2×2 style grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {styleOptions.map(({ id, label, preview }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setCaptionStyle(id)}
-                    className="flex flex-col items-center gap-2 group"
-                  >
-                    {/* 9:16 preview frame */}
-                    <div
-                      className={`relative w-full aspect-[9/16] rounded-lg overflow-hidden border transition-all duration-150 ${
-                        captionStyle === id
-                          ? "ring-2 ring-emerald-500 border-emerald-500/30 -translate-y-0.5 shadow-lg shadow-emerald-900/40"
-                          : "border-gray-700 hover:border-gray-500 hover:-translate-y-0.5"
-                      }`}
-                      style={{
-                        background: "linear-gradient(175deg, #1a1f2e 0%, #0d1014 60%, #080b0e 100%)",
-                      }}
-                    >
-                      {/* Subtle film grain / texture */}
-                      <div
-                        className="absolute inset-0 pointer-events-none opacity-[0.04]"
-                        style={{
-                          backgroundImage:
-                            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,1) 2px, rgba(255,255,255,1) 3px)",
-                        }}
-                      />
-                      {/* Vignette */}
-                      <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{
-                          background:
-                            "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
-                        }}
-                      />
-                      {preview}
-                      {/* Selected indicator dot */}
-                      {captionStyle === id && (
-                        <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/60" />
-                      )}
-                    </div>
-
-                    <span
-                      className={`text-[10px] font-semibold tracking-wide uppercase transition-colors ${
-                        captionStyle === id
-                          ? "text-emerald-400"
-                          : "text-gray-600 group-hover:text-gray-400"
+              <div className="flex flex-col gap-3">
+                {PRESETS.map((preset) => {
+                  const isSelected = selectedPreset === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => setSelectedPreset(preset.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-150 ${
+                        isSelected
+                          ? `ring-2 ${preset.ring} ${preset.border} ${preset.bg}`
+                          : "border-gray-800 hover:border-gray-600 bg-gray-900/60"
                       }`}
                     >
-                      {label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Active style indicator */}
-              <div className="mt-5 px-3 py-2.5 rounded-lg bg-gray-900 border border-gray-800">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Active Style</span>
-                  <span className="text-[11px] font-semibold text-emerald-400 capitalize">
-                    {captionStyle === "lower-third" ? "Lower Third" : captionStyle === "none" ? "Off" : captionStyle.charAt(0).toUpperCase() + captionStyle.slice(1)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Transition picker */}
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-                    <path d="M5 3l14 9-14 9V3z"/>
-                  </svg>
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Clip Transitions</span>
-                </div>
-                <p className="text-[11px] text-gray-600 leading-relaxed mb-3">How clips cut between each other.</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["cut", "fade", "dissolve", "wipe"] as const).map((t) => {
-                    const labels: Record<string, string> = { cut: "Cut", fade: "Fade", dissolve: "Dissolve", wipe: "Wipe" };
-                    const descs: Record<string, string> = { cut: "Instant", fade: "To black", dissolve: "Cross-fade", wipe: "Slide" };
-                    return (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setTransitionStyle(t)}
-                        className={`flex flex-col items-center gap-1.5 p-2.5 rounded-lg border transition-all duration-150 ${
-                          transitionStyle === t
-                            ? "ring-2 ring-emerald-500 border-emerald-500/30 bg-emerald-500/5"
-                            : "border-gray-700 hover:border-gray-500 bg-gray-900"
-                        }`}
+                      {/* 9:16 mini preview */}
+                      <div
+                        className="relative flex-shrink-0 w-10 rounded-lg overflow-hidden border border-gray-700"
+                        style={{ aspectRatio: "9/16", background: "linear-gradient(175deg, #1a1f2e 0%, #0d1014 60%, #080b0e 100%)" }}
                       >
-                        <div className="w-full h-8 rounded relative overflow-hidden bg-gray-800 flex items-center justify-center">
-                          {t === "cut" && (
-                            <div className="flex w-full h-full">
-                              <div className="flex-1 bg-gray-700" />
-                              <div className="w-px bg-emerald-400" />
-                              <div className="flex-1 bg-gray-600" />
-                            </div>
-                          )}
-                          {t === "fade" && (
-                            <div className="w-full h-full" style={{ background: "linear-gradient(to right, #374151, #000, #374151)" }} />
-                          )}
-                          {t === "dissolve" && (
-                            <div className="w-full h-full" style={{ background: "linear-gradient(to right, #374151, #4b5563)" }} />
-                          )}
-                          {t === "wipe" && (
-                            <div className="flex w-full h-full items-center">
-                              <div className="flex-1 bg-gray-700" />
-                              <div className="w-1.5 h-full bg-emerald-400/60 -skew-x-6" />
-                              <div className="flex-1 bg-gray-600" />
-                            </div>
+                        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)" }} />
+                        {preset.previewCaption}
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full shadow-sm" style={{ background: preset.accent }} />
+                        )}
+                      </div>
+
+                      {/* Text content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className={`text-sm font-bold ${isSelected ? "text-white" : "text-gray-300"}`}>
+                            {preset.label}
+                          </span>
+                          {preset.tag && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: `${preset.accent}20`, color: preset.accent }}>
+                              {preset.tag}
+                            </span>
                           )}
                         </div>
-                        <span className={`text-[10px] font-semibold uppercase tracking-wide ${transitionStyle === t ? "text-emerald-400" : "text-gray-600"}`}>
-                          {labels[t]}
-                        </span>
-                        <span className="text-[9px] text-gray-600">{descs[t]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-between">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Active</span>
-                  <span className="text-[11px] font-semibold text-emerald-400 capitalize">{transitionStyle}</span>
-                </div>
-              </div>
+                        <p className="text-[10px] text-gray-500 leading-relaxed mb-2">{preset.description}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {preset.attrs.map((attr) => (
+                            <span
+                              key={attr}
+                              className="text-[9px] font-medium px-1.5 py-0.5 rounded border"
+                              style={isSelected
+                                ? { color: preset.accent, borderColor: `${preset.accent}40`, background: `${preset.accent}10` }
+                                : { color: "#6b7280", borderColor: "#374151", background: "transparent" }
+                              }
+                            >
+                              {attr}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
 
-              {/* Video Source picker */}
-              <div className="mt-6">
-                <div className="flex items-center gap-2 mb-1">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-500">
-                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3V9z"/>
-                  </svg>
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Video Source</span>
-                </div>
-                <p className="text-[11px] text-gray-600 leading-relaxed mb-3">Choose where clip visuals come from.</p>
-                <div className="flex flex-col gap-2">
-                  {([
-                    { id: "ai", label: "AI Generated", desc: "Kling AI creates cinematic clips from your captions", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> },
-                    { id: "stock", label: "Stock Footage", desc: "Real Pexels clips matched to each caption", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M2 18l6-6 4 4 3-3 5 5"/></svg> },
-                    { id: "mix", label: "Mix", desc: "AI clips 1, 3, 5 · Stock clips 2, 4", icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg> },
-                  ] as const).map(({ id, label, desc, icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setVideoSource(id)}
-                      className={`flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150 ${
-                        videoSource === id
-                          ? "ring-2 ring-emerald-500 border-emerald-500/30 bg-emerald-500/5"
-                          : "border-gray-700 hover:border-gray-500 bg-gray-900"
-                      }`}
-                    >
-                      <div className={`mt-0.5 flex-shrink-0 ${videoSource === id ? "text-emerald-400" : "text-gray-500"}`}>{icon}</div>
-                      <div>
-                        <div className={`text-[11px] font-semibold uppercase tracking-wide ${videoSource === id ? "text-emerald-400" : "text-gray-400"}`}>{label}</div>
-                        <div className="text-[10px] text-gray-600 mt-0.5 leading-relaxed">{desc}</div>
+                      {/* Check */}
+                      <div className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected ? "border-transparent" : "border-gray-700"
+                      }`} style={isSelected ? { background: preset.accent } : {}}>
+                        {isSelected && (
+                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                            <path d="M1.5 4l2 2 3-3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
                       </div>
                     </button>
-                  ))}
-                </div>
-                <div className="mt-3 px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-between">
-                  <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Active</span>
-                  <span className="text-[11px] font-semibold text-emerald-400">
-                    {videoSource === "ai" ? "AI Generated" : videoSource === "stock" ? "Stock Footage" : "Mix"}
-                  </span>
-                </div>
+                  );
+                })}
               </div>
+
+              {/* Summary bar */}
+              {(() => {
+                const preset = PRESETS.find((p) => p.id === selectedPreset)!;
+                return (
+                  <div className="mt-4 px-3 py-2.5 rounded-lg bg-gray-900 border border-gray-800 space-y-1.5">
+                    <span className="text-[10px] text-gray-500 uppercase tracking-wide font-medium block">Selected</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-600">Captions</span>
+                      <span className="text-[10px] font-semibold text-gray-300 capitalize">
+                        {preset.captionStyle === "lower-third" ? "Lower Third" : preset.captionStyle === "none" ? "Off" : preset.captionStyle}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-600">Transition</span>
+                      <span className="text-[10px] font-semibold text-gray-300 capitalize">{preset.transitionStyle}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-600">Footage</span>
+                      <span className="text-[10px] font-semibold text-gray-300">
+                        {preset.videoSource === "ai" ? "AI Generated" : preset.videoSource === "stock" ? "Stock" : "AI + Stock"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
 
             </div>
           </div>
