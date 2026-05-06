@@ -56,11 +56,11 @@ Deno.serve(async (req) => {
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 2048,
-      system: `You are an expert viral short-form video scriptwriter. You create captions that stop people mid-scroll. Your captions are specific, surprising, and make the viewer feel like they're about to learn something they can't afford to miss. You never write generic summaries — you write hooks that create curiosity gaps, reveal counter-intuitive truths, or surface the single most shocking or valuable insight from the content.`,
+      system: `You are the best short-form video scriptwriter on the internet. You write captions that make people stop scrolling and feel like they just discovered something they can't unlearn. You pull the single most surprising, specific, or counter-intuitive fact from the source material and build every caption around it. You never use filler phrases like "you need to see this" or "here's why." You never write generic summaries. Every word you write is earned.`,
       messages: [
         {
           role: "user",
-          content: `Transform this article into 5 short-form video captions and 1 Instagram caption.
+          content: `Turn this article into a 5-part short-form video script and 1 Instagram caption.
 
 Article:
 ${articleText}
@@ -71,18 +71,24 @@ Return ONLY valid JSON — no explanation, no markdown fences:
   "description": "instagram caption here"
 }
 
-Rules for caption_options (exactly 5 items):
-- Each caption is the TEXT OVERLAY shown on screen during a vertical video clip — it must be readable in under 4 seconds
-- 8–12 words max, but make every word earn its place
-- Write the HOOK or KEY INSIGHT, not a description of the article
-- Use one of these proven formats:
-  • Curiosity gap: "The one thing [experts/doctors/scientists] won't tell you about X"
-  • Counter-intuitive: "Why doing X actually makes Y worse"
-  • Specific stat or claim: "X% of people do Y — here's why that's a problem"
-  • Bold statement: "This changed how I think about X forever"
-  • Stakes: "If you're doing X, you need to see this"
-- Present tense, active voice, no hashtags, no emojis
-- Each of the 5 captions should take a DIFFERENT angle on the article — don't repeat the same idea
+The 5 captions tell one cohesive story across 5 clips. Each clip is 5 seconds of video with text overlaid. Think of them as 5 beats of a viral hook:
+
+Clip 1 — THE HOOK: Open with the single most surprising or counter-intuitive claim from the article. Use a SPECIFIC number, name, or result if the article has one. Make the viewer think "wait, what?" Do NOT use a question — make a bold declarative statement.
+
+Clip 2 — THE STAKES: Why does this matter to the viewer personally? What's the uncomfortable truth or consequence? Be direct and specific to THIS article, not generic.
+
+Clip 3 — THE EVIDENCE: Name the specific finding, mechanism, or data point that proves the hook. Concrete > vague. "A Stanford 12-year study" beats "research shows."
+
+Clip 4 — THE TWIST: The thing that flips conventional wisdom. What do most people get completely wrong about this topic? Start with "Most people think..." or "The problem isn't..."
+
+Clip 5 — THE PAYOFF: The one thing to remember or do differently. Make it feel like the viewer just got insider knowledge. End with a sense of resolution.
+
+Hard rules:
+- Use ACTUAL details from the article — real numbers, real names, real findings. No placeholders like [X]% or generic examples.
+- 10–18 words per caption. Specificity > brevity. A tight 15-word caption beats a vague 8-word one.
+- Present tense, active voice, sentence case (not ALL CAPS)
+- No hashtags, no emojis, no ellipses as a crutch
+- Each caption must flow naturally from the one before it — this is a story, not 5 separate tweets
 
 Rules for description:
 - 150–200 words, conversational and direct

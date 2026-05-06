@@ -109,6 +109,16 @@ serve(async (req) => {
     const endTimes: number[] = alignment?.character_end_times_seconds ?? [];
     const audio_duration_seconds = endTimes.length > 0 ? endTimes[endTimes.length - 1] : null;
 
+    // Validate caption_timings are strictly increasing — charOffset can drift if ElevenLabs
+    // normalizes characters differently than .length counts. Fall back to even distribution.
+    const isMonotonic = caption_timings.every((v, i) => i === 0 || v > caption_timings[i - 1]);
+    if (!isMonotonic) {
+      const totalFrames = Math.round((audio_duration_seconds ?? 30) * FPS);
+      caption_timings = Array.from({ length: 5 }, (_, j) => Math.round((j / 5) * totalFrames));
+      // Reset word_timings to empty so the renderer falls back to uniform distribution
+      word_timings = [[], [], [], [], []];
+    }
+
     return new Response(
       JSON.stringify({ success: true, audio_url: publicUrl, caption_timings, word_timings, audio_duration_seconds }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

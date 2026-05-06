@@ -348,7 +348,7 @@ export const StudioComposition: React.FC<StudioCompositionProps> = ({
 
       {captionStyle !== "none" && captions.map((caption, i) => {
         const start = startFrames[i];
-        const end = endFrames[i];
+        const end = Math.max(endFrames[i], start + 21);
         const opacity = interpolate(frame, [start, start + 10, end - 10, end], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
         const translateY = interpolate(frame, [start, start + 10], [20, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
         return (
