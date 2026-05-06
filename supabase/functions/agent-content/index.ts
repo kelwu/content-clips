@@ -35,24 +35,32 @@ Deno.serve(async (req) => {
         headers: { "User-Agent": "Mozilla/5.0 (compatible; ClipFrom/1.0)" },
       });
       const html = await resp.text();
-      articleText = html
+      // Extract main content: remove boilerplate then grab densest text block
+      const cleaned = html
         .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
         .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
+        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "")
+        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
+        .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, "")
+        .replace(/<!--[\s\S]*?-->/g, "")
         .replace(/<[^>]+>/g, " ")
         .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 10000);
+        .trim();
+      // Take up to 12000 chars to give Claude more article context
+      articleText = cleaned.slice(0, 12000);
     }
 
     // Generate captions via Claude
     const anthropic = new Anthropic({ apiKey: anthropicKey });
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 2048,
+      system: `You are an expert viral short-form video scriptwriter. You create captions that stop people mid-scroll. Your captions are specific, surprising, and make the viewer feel like they're about to learn something they can't afford to miss. You never write generic summaries — you write hooks that create curiosity gaps, reveal counter-intuitive truths, or surface the single most shocking or valuable insight from the content.`,
       messages: [
         {
           role: "user",
-          content: `You are a social media content writer. Generate captions from this article.
+          content: `Transform this article into 5 short-form video captions and 1 Instagram caption.
 
 Article:
 ${articleText}
@@ -64,12 +72,23 @@ Return ONLY valid JSON — no explanation, no markdown fences:
 }
 
 Rules for caption_options (exactly 5 items):
-- Each 8–12 words, punchy hook designed for TikTok/Reels
+- Each caption is the TEXT OVERLAY shown on screen during a vertical video clip — it must be readable in under 4 seconds
+- 8–12 words max, but make every word earn its place
+- Write the HOOK or KEY INSIGHT, not a description of the article
+- Use one of these proven formats:
+  • Curiosity gap: "The one thing [experts/doctors/scientists] won't tell you about X"
+  • Counter-intuitive: "Why doing X actually makes Y worse"
+  • Specific stat or claim: "X% of people do Y — here's why that's a problem"
+  • Bold statement: "This changed how I think about X forever"
+  • Stakes: "If you're doing X, you need to see this"
 - Present tense, active voice, no hashtags, no emojis
+- Each of the 5 captions should take a DIFFERENT angle on the article — don't repeat the same idea
 
 Rules for description:
-- 150–200 words, conversational tone
-- Ends with 10–15 relevant hashtags`,
+- 150–200 words, conversational and direct
+- Opens with the strongest hook from the article
+- Explains the key insight or finding in plain language
+- Ends with a call to action and 10–15 relevant hashtags`,
         },
       ],
     });
