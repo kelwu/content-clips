@@ -187,6 +187,12 @@ export default function VideoResults() {
           navigate("/");
           return;
         }
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          toast.error(body?.error ?? "Failed to start video generation. Please try again.");
+          navigate("/");
+          return;
+        }
       } catch (err) { console.warn("Could not trigger video generation:", err); }
     };
 
