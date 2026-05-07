@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,8 +29,9 @@ function Section({ title, description, children }: { title: string; description?
 
 export default function Settings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, session, signOut } = useAuth();
-  const billingPreview = new URLSearchParams(window.location.search).get("billing") === "preview";
+  const billingPreview = new URLSearchParams(location.search).get("billing") === "preview";
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [outro, setOutro] = useState("");
