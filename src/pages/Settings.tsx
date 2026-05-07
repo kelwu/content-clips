@@ -30,6 +30,7 @@ function Section({ title, description, children }: { title: string; description?
 export default function Settings() {
   const navigate = useNavigate();
   const { user, session, signOut } = useAuth();
+  const billingPreview = new URLSearchParams(window.location.search).get("billing") === "preview";
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [outro, setOutro] = useState("");
@@ -237,7 +238,7 @@ export default function Settings() {
                     </p>
                   </div>
                 </div>
-                {profile.stripe_customer_id ? (
+                {(profile.stripe_customer_id || billingPreview) ? (
                   <button
                     onClick={handleManageBilling}
                     disabled={loadingPortal}
