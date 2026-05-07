@@ -128,11 +128,11 @@ export default function Settings() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        toast.error("Could not open billing portal");
+        toast.error(data.error ?? "Could not open billing portal");
         setLoadingPortal(false);
       }
-    } catch {
-      toast.error("Could not reach server");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reach server");
       setLoadingPortal(false);
     }
   };
